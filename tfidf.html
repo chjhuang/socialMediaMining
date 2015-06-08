@@ -104,7 +104,6 @@
             var uploadComplete = function(event) {
 				document.getElementById("status").innerHTML = "数据集上传完成!";
 				document.getElementById("upload").disabled = false;
-				document.getElementById("waitImage").style.display = "block";
             };
 			
 			//服务器保存文件完成
@@ -132,6 +131,9 @@
 				xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
 				xhr.open("GET", encodeURI(url), true);
 				xhr.send(null);
+				
+				//等待响应
+				document.getElementById("waitImage").style.display = "block";
 			};
 			
 			var corpus; //文档集

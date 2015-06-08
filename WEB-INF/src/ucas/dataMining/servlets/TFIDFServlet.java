@@ -1,6 +1,8 @@
 package ucas.dataMining.servlets;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,12 +17,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
-import com.alibaba.fastjson.JSONObject;
-
 import ucas.dataMining.tfidf.TFIDF;
 import ucas.dataMining.tfidf.TextTokenizer;
 import ucas.dataMining.tfidf.TwitterTokenizer;
 import ucas.dataMining.util.FileIOUtil;
+
+import com.alibaba.fastjson.JSONObject;
 
 @MultipartConfig
 @WebServlet("/tfidfServlet")
@@ -31,21 +33,38 @@ public class TFIDFServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Part file = request.getPart("file");
         //String filename = file.getSubmittedFileName();
-        
+        System.out.println("tf-idf文档集上传成功！");
         String responseMessage = "";
         //处理传入的文件
         try{
-        	tfIdfCalculator(file.getInputStream());
-        } 
+        	FileIOUtil.saveToLocal(this.getServletContext().getRealPath("/uploadFile/twitter-sentiment.txt"), file.getInputStream());
+        }
         catch(Exception ex) {
         	responseMessage = "Error: " + ex.getMessage();
+        	System.out.println(responseMessage);
         }
         
-        System.out.println(responseMessage);
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(responseMessage);
     }
+	
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException ,IOException {
+		String responseMessage = "";
+		
+		try {
+			tfIdfCalculator(new FileInputStream(new File(this.getServletContext().getRealPath("/uploadFile/twitter-sentiment.txt"))));
+		} catch (Exception ex) {
+			responseMessage = "Error: " + ex.getMessage();
+			System.out.println(responseMessage);
+		}	
+		
+		System.out.println("文档集tf-idf值计算完成！");
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(responseMessage);
+	}
 	
 	private void tfIdfCalculator(InputStream dataSet) throws IOException {
 		TextTokenizer tokenizer = new TwitterTokenizer();
@@ -81,7 +100,6 @@ public class TFIDFServlet extends HttpServlet {
 	    jsonBuilder.put("corpus", corpusList);
 		
 		//生成结果
-		FileIOUtil.writeToFile( jsonBuilder.toJSONString(),
-				this.getServletContext().getRealPath("/") + "\\json\\tf_idf.json");
+		FileIOUtil.writeToFile(jsonBuilder.toJSONString(), this.getServletContext().getRealPath("/json/tf_idf.json"));
 	}
 }
