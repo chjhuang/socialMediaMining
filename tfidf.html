@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>TF-IDF Calculator</title>
+		<script type="text/javascript" src="jscss/d3.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="jscss/style.css"/>
+	</head>
+	<body>
+		<div id="menu">
+			<ul>
+				<li><a href="tfidf.html">TF-IDF</a></li>
+				<li><a href="decisionTree.html">DecisionTree</a></li>
+				<li><a href="classficationWithNetworkInformation.html">Network</a></li>
+				<li><a href="simpleLinearRegression.html">Regression</a></li>
+				<li><a href="bayes.jsp">NBC</a></li>
+				<li><a href="knn.jsp">KNN</a></li>
+				<li><a href="http://localhost:8000/njza/">KMeans</a></li>
+				<li><a href="application.html">Application</a></li>
+			</ul>
+		</div>
+		<div id="title">TF-IDF Calculator</div>
+		<div style="width: 100%; height: 630px;">
+			<div id="left_container">
+				<div id="file_upload">
+					<h3 class="zone_title">训练集导入: </h3>
+					<div class="form_zone">
+						<div style="display: inline;">
+							<input type="file" id="file_select">
+							<span id="status"></span>
+						</div>
+						<div class="button_line">
+							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
+						</div>
+					</div>
+				</div>
+				<div id="return" align="bottom">
+					<a href="home.html">返回主页</a>
+				</div>
+			</div>
+			<div id="right_container">
+				<h3 class="zone_title">TF-IDF值：</h3>
+				<div class="display_zone">
+					<div class="hint" id="hint" style="display: none;">
+						<h4 id="corpusSize"></h4>
+						<div class="documentLine">
+							<h4>document:</h4>
+							<div style="text-align: center;">
+								<img src="images/back.png" alt="back" class="hintImage" onclick="previous();">
+								<textarea id="document" rows="2" cols="80"></textarea>
+								<img src="images/next.png" alt="next" class="hintImage" onclick="next();">
+							</div>
+						</div>
+					</div>
+					<div id="tfidfBars" style="text-align: center;">
+						<div id="waitImage" align="center" style="display: none;">
+							<img src="images/wait.gif" style="width: 80%; height: 300px;" alt="卖力计算中....">
+							<p>卖力计算中....</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="footer">
+			<p>Copyright (c) 2015. Design by Jeff </p>
+		</div>
+		<script>
+			//上传训练集到服务器
+			var uploadFile = function() {
+				var files = document.getElementById("file_select").files;
+				if(files.length > 0) {
+					var file = files[0];	
+					
+					if(!file.type.match("text.*") && !file.type.match("application/vnd.ms-excel")) {
+						document.getElementById("status").innerHTML = "不支持该类型文件上传!";
+						return;
+					}
+					
+					document.getElementById("upload").disabled = true;
+					document.getElementById("status").innerHTML = "Uploading...";
+					var formData = new FormData();
+					formData.append("file", file);
+					
+					var xhr = new XMLHttpRequest();
+					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
+					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
+					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					xhr.open("POST", "tfidfServlet", true);
+					xhr.send(formData);				
+				}
+				else {
+					document.getElementById("status").innerHTML = "请选择要上传的数据集!";
+				}
+			};
+			
+			//上传进度条
+			var uploadProgress = function(event) {
+				// Note: doesn't work with async=false.
+				var progress = Math.round(event.loaded / event.total * 100);
+				document.getElementById("status").innerHTML = "Progress " + progress + "%";
+            };
+
+			//文件上传完成，不管服务器是否回复
+            var uploadComplete = function(event) {
+				document.getElementById("status").innerHTML = "数据集上传完成!";
+				document.getElementById("upload").disabled = false;
+				document.getElementById("waitImage").style.display = "block";
+            };
+			
+			var corpus; //文档集
+			var corpusSize; //文档集文档数
+			var curIndex = 0; //当前文档序号
+			var width = document.getElementById("right_container").clientWidth * 0.9, height = 500, padding = 80;					  
+			var svg = d3.select("#tfidfBars").append("svg")
+						.attr("width", width)
+						.attr("height", height)
+						.append("g")
+						.attr("transform", "translate(" + padding + ", 10)");
+			var colors = d3.scale.category10(); //颜色选择器
+			
+			//数据集训练完毕，显示结果
+			var trainCompleted = function(event) {
+				if(event.target.readyState == 4) {
+					//隐藏计算过程中的提示信息
+					document.getElementById("waitImage").style.display = "none";
+					//显示提示信息框
+					document.getElementById("hint").style.display = "block";
+					
+					var respText = event.target.responseText;
+					if(respText.startsWith("Error:")) {
+						alert("数据集不符合规范，决策树训练失败!");
+						return;
+					}
+					
+					d3.json("json/tf_idf.json", function(error, data) {
+						if(error) {
+							return;  //数据加载失败
+						}
+						corpusSize = data.corpusSize;
+						d3.select("#corpusSize")
+						  .text("Corpus Size: " + corpusSize);
+				 
+						corpus = data.corpus;
+						curIndex = 0;
+						drawBarChart(corpus[curIndex]);  //绘制条形图
+					});
+				}
+			}
+			
+			var drawBarChart = function(data) {
+				d3.select("#document")
+				  .text("  " + data.document + "  ");
+				 
+				var terms = [];
+				var tf_idf = [];
+				for(var term in data.terms) {
+					terms.push(term);
+					tf_idf.push(data.terms[term]);
+				}
+				
+				var scale = d3.scale.linear()
+					  .domain([0, tf_idf[0]])
+                      .rangeRound([0, width * 0.7]);
+					  
+				var termBars = svg.selectAll(".bar")
+				   .data(tf_idf)
+				   .enter()
+				   .append("g")
+				   .attr("class", "bar");
+				
+				termBars.append("text")
+					.attr("class", "term")
+					.attr("x", 20)
+					.attr("y", function(d, i) { return 10 + i * 20; })
+					.text(function(d, i) { return terms[i]; });
+				
+				termBars.append("rect")
+					.attr("x", 22)
+				    .attr("y", function(d, i) { return i * 20; })
+				    .attr("width", function(d) { return scale(d) + "px"; })
+				    .attr("height", 13)
+					.style("fill", function(d, i) {
+						return colors(i);
+					});
+					
+				termBars.append("text")
+					.attr("class", "tfidf")
+					.attr("x", function(d) { return 25 + scale(d); })
+					.attr("y", function(d, i) { return 10 + i * 20; })
+					.text(function(d) { return d; });	
+			};
+			
+			var updateBarChart = function(data) {
+				d3.select("#document")
+				  .text("  " + data.document + "  ");
+				 
+				var terms = [];
+				var tf_idf = [];
+				for(var term in data.terms) {
+					terms.push(term);
+					tf_idf.push(data.terms[term]);
+				}
+				
+				var scale = d3.scale.linear()
+					  .domain([0, tf_idf[0]])
+                      .rangeRound([0, width * 0.7]);
+					  
+				var termBars = svg.selectAll(".bar")
+				   .data(tf_idf);
+				   
+				var newtermBars = termBars.enter()               //新增元素
+								          .append("g")
+				                          .attr("class", "bar");   
+				
+				newtermBars.append("text")
+					.attr("class", "term")
+					.attr("x", 20);
+				
+				newtermBars.append("rect")
+					.attr("x", 22)
+				    .attr("height", 13);
+					
+				newtermBars.append("text")
+					.attr("class", "tfidf");
+				
+				termBars.exit()          //移除多出来的元素
+					 .remove();  
+				 
+				termBars.select(".term")
+				    .attr("y", function(d, i) { return 10 + i * 20; })
+					.text(function(d, i) { return terms[i]; });
+				
+				termBars.select("rect")
+				    .transition()
+                    .duration(200)
+					.attr("y", function(d, i) { return i * 20; })
+				    .attr("width", function(d) { return scale(d) + "px"; })
+					.style("fill", function(d, i) {
+						return colors(i);
+					});
+					
+				termBars.select(".tfidf")
+					.attr("x", function(d) { return 25 + scale(d); })
+					.attr("y", function(d, i) { return 10 + i * 20; })
+					.text(function(d) { return d; });
+			};
+			
+			//前一文档
+			var previous = function() {
+				curIndex--;
+				if(curIndex >= 0) {
+					updateBarChart(corpus[curIndex]);
+				}
+				else {
+					curIndex++;
+				}
+			};
+			
+			//后一文档
+			var next = function() {
+				curIndex++;
+				if(curIndex < corpusSize) {
+					updateBarChart(corpus[curIndex]);
+				}
+				else {
+					curIndex--;
+				}
+			};
+		</script>
+	</body>
+</html>

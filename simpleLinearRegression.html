@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SimpleLinearRegression</title>
+    <script type="text/javascript" src="jscss/echarts.js"></script>
+    <script type="text/javascript" src="jscss/jquery.js"></script>
+	<link rel="stylesheet" type="text/css" href="jscss/style.css"/>
+</head>
+<body>
+	<div id="menu">
+		<ul>
+			<li><a href="tfidf.html">TF-IDF</a></li>
+			<li><a href="decisionTree.html">DecisionTree</a></li>
+			<li><a href="classficationWithNetworkInformation.html">Network</a></li>
+			<li><a href="simpleLinearRegression.html">Regression</a></li>
+			<li><a href="bayes.jsp">NBC</a></li>
+			<li><a href="knn.jsp">KNN</a></li>
+			<li><a href="http://localhost:8000/njza/">KMeans</a></li>
+			<li><a href="application.html">Application</a></li>
+		</ul>
+	</div>	
+	<div id="title">Simple Linear Regression</div>
+	
+	<div style="width: 100%; height: 630px;">
+		<div id="left_container">
+			<div id="file_upload">
+				<h3 class="zone_title">训练集导入: </h3>
+					<div class="form_zone">
+						<div style="display: inline;">
+							<input type="file" id="file_select">
+							<span id="status"></span>
+						</div>
+						<div class="button_line">
+							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
+						</div>
+					</div>
+			</div>
+			
+			<div id="information_zone">
+				<h3 class="zone_title">拟合直线：</h3>
+				<lable>直线方程：</lable>
+				<input id="line" type="text"></input><br/>
+				<lable>拟 合 度：</lable>
+				<input id="r" type="text"></input>
+			</div>
+			<div id="prediction_zone">
+				<h3 class="zone_title">回归测试：</h3>
+				<lable>输入值：</lable>
+				<input id="predict_input" type="text"></input>
+				<select id="choice">
+					<option value="height">身高</option>
+					<option value="weight">体重</option>
+				</select>
+				<br/>
+				<lable>预测值：</lable>
+				<input id="predict_val" type="text"></input><lable id="unit"></lable>
+				<div class="button_line">
+					<button id="predict_bt" class="button">预测</button>
+				</div>
+			</div>			
+		</div>
+		<div id="right_container">
+				<!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+				<div id="main" style="width:100%;height:100%"></div>
+		</div>	
+	</div>
+    <script type="text/javascript">
+		//上传训练集到服务器
+			var uploadFile = function() {
+				var files = document.getElementById("file_select").files;
+				if(files.length > 0) {
+					var file = files[0];	
+					document.getElementById("upload").disabled = true;
+					document.getElementById("status").innerHTML = "Uploading...";
+					var formData = new FormData();
+					formData.append("file", file);
+					
+					var xhr = new XMLHttpRequest();
+					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
+					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
+					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					xhr.open("POST", "NSLRServlet", true);
+					xhr.send(formData);				
+				}
+				else {
+					document.getElementById("status").innerHTML = "请选择要上传的数据集!";
+				}
+			};
+			
+			//上传进度条
+			var uploadProgress = function(event) {
+				// Note: doesn't work with async=false.
+				var progress = Math.round(event.loaded / event.total * 100);
+				document.getElementById("status").innerHTML = "Progress " + progress + "%";
+            };
+
+			//文件上传完成，不管服务器是否回复
+            var uploadComplete = function(event) {
+				document.getElementById("status").innerHTML = "数据集上传完成!";
+				document.getElementById("upload").disabled = false;
+				//document.getElementById("waitImage").style.display = "block";
+            };
+			
+			//数据集训练完毕，显示结果
+			var trainCompleted = function(event) {
+				var result = getTrainedData();
+				drawEcharts(result);
+			}
+			
+			$("#predict_bt").bind("click",function(){
+				var train_data = getTrainedData();
+				
+				var predict_input = $("#predict_input").val();
+				var predice_select = $("#choice").val();
+				var a = train_data.b;
+				var b = train_data.a;
+				var points = train_data.points;
+				var predict_val=0.0;
+				var unit = "";
+				
+				if(predice_select=="height")
+				{
+					predict_val=parseFloat(a)*parseFloat(predict_input)+parseFloat(b);
+					unit = "kg";
+				}else if(predice_select=="weight")
+				{
+					predict_val=(parseFloat(predict_input)-parseFloat(b))/parseFloat(a);
+					unit = "cm";
+				}
+				
+				$("#predict_val").val(predict_val);
+				$("#unit").html(unit);
+            });
+			
+			function getTrainedData()
+			{
+				var data = "";
+                $.ajax({
+                    type : "get",
+                    async : false, //同步执行
+                    url : "./uploadFile/trainedLinearRegression.json",//这里放的是最后存储训练所得结果
+                    data : {},
+                    dataType : "json", //返回数据形式为json
+                    success : function(result) {
+                    if (result) {
+                        data = result;            
+                    }}
+					,error : function(errorMsg) {
+                        alert("不好意思，大爷，图表请求数据失败啦!");
+                    }
+					})
+                return data;    
+				}
+				
+			
+		function drawEcharts(result){
+			// 路径配置
+			require.config({
+				paths: {
+					echarts:'./jscss'
+				}
+			});
+			// 使用
+			require(
+            [
+                'echarts',
+                'echarts/chart/scatter', // 使用散点图就加载scatter模块，按需加载
+				'echarts/chart/line' 
+            ],
+            function(ec){
+                // 基于准备好的dom，初始化echarts图表
+                myChart = ec.init(document.getElementById('main')); 
+                var option = {
+					title : {
+						text: '身高体重线性回归',
+					},
+                    tooltip: {
+                        show: true
+                    },
+					toolbox: {
+						show : true,
+						feature : {
+							mark : {show: true},
+							dataZoom: {show:true},
+							dataView : {show: true, readOnly: false},
+							magicType : {show: true, type: ['line']},
+							restore : {show: true},
+							saveAsImage : {show: true}
+						}
+					},
+                    legend: {
+                        data:['坐标点']
+                    },
+                    xAxis : [
+                        {
+                            type : 'value',
+							scale:true,
+							axisLabel : {
+								formatter: '{value}cm'
+							}
+							}
+                    ],
+                    yAxis : [
+					{
+						type : 'value',
+						scale:true,
+						axisLabel : {
+						formatter: '{value}kg'
+						}
+					}
+					],
+                    series : [
+                        {
+							name:'散点',
+							type:'scatter',
+                            data: (function(){
+										
+										var arr=[];
+                                        if (result) {
+                                               for(var i=0;i<result.points.length;i++){
+                                                  arr.push([result.points[i].x,result.points[i].y]);
+												 }    
+                                        }else{
+											alert("不好意思，大爷，图表请求数据失败啦!");
+											myChart.hideLoading();
+										}
+										return arr;
+                                   })(),
+							markPoint : {
+							data : [
+								{type : 'max', name: '最大值'},
+								{type : 'min', name: '最小值'}
+							]
+							},
+							markLine : {
+							data : [
+								{type : 'average', name: '平均值'}
+								]
+							}
+						}
+						,
+						{
+							name:'折线',
+							type:'line',
+							data: (function(){
+								var arr=[];
+                                if (result) {
+                                    for(var i=0;i<result.points.length;i++){
+										arr.push([result.points[i].x,result.b*result.points[i].x+result.a]);
+										}   
+										$("#line").attr("value","y="+result.b+"*x+"+result.a);//填充内容 
+										$("#r").attr("value",result.r);//填充内容 
+                                        }
+								else{
+                                    alert("不好意思，大爷，图表请求数据失败啦!");
+                                    myChart.hideLoading();
+								}
+								return arr;
+								})()        
+								
+						}
+                    ]
+                };               
+                // 为echarts对象加载数据 
+                myChart.setOption(option); 
+				}
+			);
+			}
+    </script>
+</body>
+</html>

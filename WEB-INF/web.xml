@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+	<!-- 郭辰阳 -->
+    <servlet>
+        <servlet-name>SimpleLinearRegression</servlet-name>   
+        <servlet-class>ucas.dataMining.servlets.NSLRServlet</servlet-class>    
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SimpleLinearRegression</servlet-name>
+        <url-pattern>/NSLRServlet</url-pattern>    
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>CNIServlet</servlet-name>    
+        <servlet-class>ucas.dataMining.servlets.CNIServlet</servlet-class>    
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>CNIServlet</servlet-name>
+        <url-pattern>/CNIServlet</url-pattern>   
+    </servlet-mapping>
+    
+    <!-- 旷志鑫 -->
+    <servlet>
+    	<servlet-name>Bayes</servlet-name>
+    	<servlet-class>ucas.dataMining.servlets.BayesServlet</servlet-class>
+  	</servlet>
+  	<servlet>
+    	<servlet-name>Knn</servlet-name>
+    	<servlet-class>ucas.dataMining.servlets.knnServlet</servlet-class>
+  	</servlet>
+
+  	<servlet-mapping>
+    	<servlet-name>Bayes</servlet-name>
+    	<url-pattern>/Bayes</url-pattern>
+  	</servlet-mapping>
+  	<servlet-mapping>
+    	<servlet-name>Knn</servlet-name>
+    	<url-pattern>/Knn</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- 均煌 -->
+  	<servlet>
+		<servlet-name>decisionTreeProcessor</servlet-name>
+		<servlet-class>ucas.dataMining.servlets.DecisionTreeServlet</servlet-class>
+  	</servlet>
+  	<servlet>
+		<servlet-name>tfidfProcessor</servlet-name>
+		<servlet-class>ucas.dataMining.servlets.TFIDFServlet</servlet-class>
+  	</servlet>
+  	
+  	<servlet-mapping>
+		<servlet-name>decisionTreeProcessor</servlet-name>
+		<url-pattern>/decisionTreeServlet</url-pattern>
+  	</servlet-mapping>
+  	<servlet-mapping>
+		<servlet-name>tfidfProcessor</servlet-name>
+		<url-pattern>/tfidfServlet</url-pattern>
+  	</servlet-mapping>
+    
+    <servlet-mapping>
+    	<servlet-name>default</servlet-name>
+    	<url-pattern>*.html</url-pattern>
+		<url-pattern>*.js</url-pattern>
+		<url-pattern>*.css</url-pattern>
+		<url-pattern>*.png</url-pattern>
+		<url-pattern>*.gif</url-pattern>
+		<url-pattern>*.json</url-pattern>
+		<url-pattern>*.txt</url-pattern>
+  	</servlet-mapping>
+
+</web-app>

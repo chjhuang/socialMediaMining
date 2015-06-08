@@ -1,0 +1,278 @@
+﻿/*Common*/
+/* Home.html */
+#home_container {
+	width: 100%;
+	height: 600px;
+	float: center;
+	margin: 10px 10px 10px 5px;
+	padding: 10px 10px 10px 10px;
+	border-radius: 0.5em;
+	border: 1px solid #808080;
+}
+
+#introduction_zone {
+	position:absolute;
+	left:30%;
+	top:50%;
+	 
+}
+
+h1{
+	font-family:"黑体";
+	text-align:center;
+	float: center;
+}
+
+/* Menu */
+#menu {
+    width: 100%;
+	height: 40px;
+	margin-bottom: 5px;
+	padding: 0;
+	background-color: #080808;
+}
+
+#menu ul {
+	margin: 0;
+	padding: 0px 0px 0px 25px;
+	list-style: none;
+	line-height: normal;
+}
+
+#menu li {
+	float:left;
+}
+
+#menu a {
+	display: block;
+	height: 28px;
+	margin-right: 3px;
+    float:left;
+	padding: 12px 40px 0px 40px;
+	background-color: #505050;
+	text-decoration: none;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+	font-weight: normal;
+	color: #FFFFFF;
+	border: none;
+}
+
+#menu a:hover {
+	text-decoration: underline;
+}
+
+/*footer*/
+#footer {
+	width: 100%;
+	height: 40px;
+	margin: 5px;
+	background-color: #444444;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+#footer p {
+	line-height: 40px;
+	font-size: 12px;
+	text-transform: uppercase;
+	text-align: center;
+	color: #fff;
+}
+
+#title {
+	width: 55%;
+	height: 75px;
+	padding-left: 2%;
+	line-height: 75px;
+	font-size: 30px;
+	font-weight: bold;
+	color: #FFFFFF;
+	text-align: left;
+	background-color: #888888;
+}
+
+#left_container {
+	width: 30%;
+	float: left;
+}
+
+#right_container {
+	width: 66%;
+	height: 600px;
+	float: right;
+	margin: 10px 10px 10px 5px;
+	padding: 10px 10px 10px 10px;
+	border-radius: 0.5em;
+	border: 1px solid #808080;
+}
+
+#file_upload,
+#instancePredict,
+#search_zone,
+#information_zone,
+#prediction_zone,
+#movieInfo_zone,
+#nodeInfo_zone {
+	margin-top: 10px;
+	margin-left: 10px;
+	padding: 10px 10px 10px 10px;
+	border-radius: 0.5em;
+	border: 1px solid #808080;
+	-webkit-box-shadow: 2px 2px 10px #909090;  /* for chrome */
+	-moz-box-shadow: 2px 2px 10px #909090;    /* for firefox */
+	box-shadow: 2px 2px 10px #909090;        /* for opera or ie9 */
+}
+
+#file_select {
+	width: 60%; 
+	padding: 2px 2px 2px 3px;
+	border-radius: 10em;
+	border: 1px solid #ccc; 
+	cursor: pointer;
+}
+
+#status {
+	margin-left: 5px;
+}
+
+.button_line {
+	margin-top: 10px;
+	text-align: center;
+}
+
+.button {
+	width: 70px;
+	height: 25px;
+	cursor: pointer;
+	font: 14px sans-serif;
+	color:#333;
+	border-radius: 30em;
+	text-align: center;
+    text-shadow: 1px 1px 0 #fff;
+	background-color: #ececec;
+}
+
+h4 {
+	padding-left: 2%;
+}
+
+/*TFIDF.html*/
+.hint {
+	margin-top: 10px;
+	margin-left: 10px;
+}
+			
+#document {
+	width: 85%;
+	font: italic bold 16px arial,sans-serif;
+	border-radius: 0.5em;
+	border: 1px solid #808080;
+}
+			
+.hintImage {
+	width: 5%; 
+	height: 5%; 
+	cursor: pointer;
+}
+			
+#tfidfBars .bar .term {
+	fill: black;
+	font: 14px sans-serif;
+	text-anchor: end;
+}
+
+/*DecisionTree.html*/
+.case_zone {
+	margin-top: -15px;
+	padding: 5px 0 5px 10px;
+	border-radius: 0.5em;
+	border: 1px solid #808080;
+}
+
+#decisionTree .node {
+	cursor: pointer;
+	font: 12px sans-serif;
+}
+#decisionTree .node circle {
+	fill: steelblue;
+}
+			
+#decisionTree .link {
+	fill: none;
+	stroke: #ccc;
+	stroke-width: 1.5px;
+}
+			
+#decisionTree .linkHint {
+	fill: black;
+	stroke: none;
+	text-anchor: middle;
+	font: 11px sans-serif; 
+}
+			
+.attributeName {
+	margin-top: 5px;
+}
+			
+.attributeValue {
+	width: 60%;
+	height: 20px;
+	text-align: center;
+	font: italic bold 14px arial,sans-serif;
+	border-radius: 0.5em;
+}
+
+/* Application */
+#method_tab {
+    width: 60%;
+	height: 40px;
+	float: right;
+	border-radius: 0.5em;
+	background-color: #505050;
+}
+
+#method_tab ul {
+	margin: 0 0 0 -4%;
+	list-style: none;
+	line-height: normal;
+}
+
+#method_tab li {
+    height: 28px;
+	margin-top: 2px;
+	margin-right: 3px;
+	padding: 10px 8% 0px 8%;
+    float: left;
+	background-color: #B8B8B8;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+	font-weight: bold;
+	color: #000000;
+	cursor: pointer;
+}
+
+#method_tab li:hover {
+	text-decoration: underline;
+}
+
+#userId {
+	width: 70%;
+	height: 20px;
+	font: italic 15px arial,sans-serif;
+	text-align: center;
+	border-radius: 0.5em;
+}
+
+#social_network .node {
+	cursor: pointer;
+}
+
+#social_network .link {
+	stroke: #ccc;
+	stroke-width: 1;
+}
+
+#social_network .msgBox .msg {
+	font: 11px arial, sans-serif; 
+	/*text-anchor: middle;*/
+}

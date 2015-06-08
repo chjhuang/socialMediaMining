@@ -1,0 +1,457 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Application</title>
+		<script type="text/javascript" src="jscss/d3.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="jscss/style.css"/>
+	</head>
+	<body>
+		<div id="menu">
+			<ul>
+				<li><a href="tfidf.html">TF-IDF</a></li>
+				<li><a href="decisionTree.html">DecisionTree</a></li>
+				<li><a href="classficationWithNetworkInformation.html">Network</a></li>
+				<li><a href="simpleLinearRegression.html">Regression</a></li>
+				<li><a href="bayes.jsp">NBC</a></li>
+				<li><a href="knn.jsp">KNN</a></li>
+				<li><a href="http://localhost:8000/njza/">KMeans</a></li>
+				<li><a href="application.html">Application</a></li>
+			</ul>
+		</div>
+		<div id="title">Social Network-Based Movies Recommender System</div>
+		<div style="width: 100%; height: 780px;">
+			<div id="left_container">
+				<div id="file_upload">
+					<h3 class="zone_title">训练集导入: </h3>
+					<div class="form_zone">
+						<div style="display: inline;">
+							<input type="file" id="file_select">
+							<span id="status"></span>
+						</div>
+						<div class="button_line">
+							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
+						</div>
+					</div>
+				</div>
+				
+				<div id="movieInfo_zone" style="display: none;">
+					<h3 class="zone_title">电影信息：</h3>
+					<div style="padding-left: 15px;">
+						<div class="info_item"><span>Name: </span><span id="movie_name">Toy Story (1995)</span></div>
+						<div class="info_item"><span>Release Date: </span><span id="release_date">01-Jan-1995</span></div>
+						<div class="info_item"><span>IMDb URL: </span><a id="movie_url" href="http://us.imdb.com/M/title-exact?Toy%20Story%20(1995)">http://us.imdb.com/M/title-exact?Toy%20Story%20(1995)</a></div>
+						<div class="info_item"><span>Movie Type: </span><span id="movie_type">Toy Story (1995)</span></div>
+					</div>
+				</div>
+				
+				<div id="search_zone">
+					<h3 class="zone_title">节点搜索：</h3>
+					<div style="display: inline;">
+						<input type="text" id="userId">
+						<input type="button" id="search" class="button" value="Search" onclick="search();">
+					</div>
+				</div>
+				<div id="nodeInfo_zone" style="display: none;">
+					<h3 class="zone_title">节点信息：</h3>
+					<div style="padding-left: 15px;">
+						<div class="info_item"><span>ID: </span><span id="user_id">1</span></div>
+						<div class="info_item"><span>Age: </span><span id="user_age">24</span></div>
+						<div class="info_item"><span>Gender: </span><span id="user_gender">Male</span></div>
+						<div class="info_item"><span>Occupation: </span><span id="user_occupation">Technician</span></div>
+						<div class="info_item"><span>Zip: </span><span id="user_zip">43537</span></div>
+						<div class="info_item"><span>Rating: </span><span id="user_rating">4</span></div>
+						<div class="info_item"><span>Label: </span><span id="user_label">High</span></div>
+						<div class="info_item"><span>Recommendation: </span><span id="recommendation">YES</span></div>
+					</div>
+				</div>
+			</div>
+			<div id="right_container">
+				<h3 class="zone_title">用户网络信息图：</h3>
+				<div class="display_zone">
+					<div id="method_tab">
+						<ul>
+							<li id="decisionTree" onclick="decisionTree();">决策树</li>
+							<li id="classify" onclick="classify();">分类</li>
+							<li id="regulation" onclick="regulation();">回归</li>
+							<li onclick="">聚类</li>
+						</ul>
+					</div>
+					<div id="social_network" style="text-align: center;">
+						<div id="waitImage" align="center" style="display: none;">
+							<img src="images/wait.gif" style="width: 80%; height: 300px;" alt="卖力计算中....">
+							<p>卖力计算中....</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="footer">
+			<p>Copyright (c) 2015. Design by Jeff </p>
+		</div>
+		<script>
+			//上传训练集到服务器
+			var uploadFile = function() {
+				var files = document.getElementById("file_select").files;
+				if(files.length > 0) {
+					var file = files[0];	
+					
+					if(!file.type.match("text.*") && !file.type.match("application/json")) {
+						document.getElementById("status").innerHTML = "不支持该类型文件上传!";
+						return;
+					}
+					
+					document.getElementById("upload").disabled = true;
+					document.getElementById("status").innerHTML = "Uploading...";
+					var formData = new FormData();
+					formData.append("file", file);
+					
+					var xhr = new XMLHttpRequest();
+					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
+					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
+					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					xhr.open("POST", "tfidfServlet", true);
+					xhr.send(formData);				
+				}
+				else {
+					document.getElementById("status").innerHTML = "请选择要上传的数据集!";
+				}
+			};
+			
+			//上传进度条
+			var uploadProgress = function(event) {
+				// Note: doesn't work with async=false.
+				var progress = Math.round(event.loaded / event.total * 100);
+				document.getElementById("status").innerHTML = "Progress " + progress + "%";
+            };
+
+			//文件上传完成，不管服务器是否回复
+            var uploadComplete = function(event) {
+				document.getElementById("status").innerHTML = "数据集上传完成!";
+				document.getElementById("upload").disabled = false;
+				document.getElementById("waitImage").style.display = "block";
+            };
+			
+			//SVG初始化
+			var width = document.getElementById("right_container").clientWidth * 0.95, height = 650, padding = 20;					  
+			var svg = d3.select("#social_network").append("svg")
+						.attr("width", width)
+						.attr("height", height);
+			//力导向图布局
+			var force = d3.layout.force()							 
+								 .charge([-100])  //节点间的电荷斥力, 绝对值越大越分散
+								 .gravity(0.05)   //节点间的引力，越小越分散
+								 .size([width, height]);
+			//网络边		
+			var edges = svg.append("g").selectAll(".link");
+			//网络节点
+			var nodes = svg.append("g").selectAll(".node");
+			//节点信息框
+			var msgBox = svg.append("g").append("g")
+							.attr("class", "msgBox");
+			var onshow = false;  //当前信息框状态
+			svg.on("mousedown", function() {  //注册svg事件，隐藏信息框
+				if(onshow) {
+					msgBox.select("image").remove();
+					msgBox.selectAll("text").remove();
+					onshow = false;
+				}
+			});
+			
+			var colors = d3.scale.category20();  //颜色集
+						
+			var dataset;  //网络节点信息集
+			
+			//网络构造完毕，显示网络
+			var trainCompleted = function(event) {
+				if(event.target.readyState == 4) {
+					//隐藏计算过程中的提示信息
+					document.getElementById("waitImage").style.display = "none";
+					
+					var respText = event.target.responseText;
+					if(respText.startsWith("Error:")) {
+						alert("数据集不符合规范, 网络图构建失败！");
+						return;
+					}
+					
+					//显示电影信息
+					var movieInfo = JSON.parse(respText);
+					document.getElementById("movie_name").innerHTML = movieInfo.m_name;
+					document.getElementById("release_date").innerHTML = movieInfo.m_release_date;
+					document.getElementById("movie_url").innerHTML = movieInfo.m_url;
+					document.getElementById("movie_url").href = movieInfo.m_url;
+					document.getElementById("movie_type").innerHTML = movieInfo.m_type;
+					//显示电影信息
+					document.getElementById("movieInfo_zone").style.display = "block";
+					
+					//获取网络图信息
+					d3.json("json/social_network.json", function(error, data) {
+						if(error) {
+							alert(error);
+							return;   //数据加载失败
+						}
+						dataset = data;
+						drawSocialNetwork();  //绘制初始网络图
+					});
+				}
+			}
+			
+			//绘制初始网络图
+			var drawSocialNetwork = function() {
+				//Initialize a default force layout, using the nodes and edges in dataset
+				force.nodes(dataset.nodes)
+					 .links(dataset.edges)
+					 .linkDistance([150])
+					 .on("tick", tickViewUpdate)
+					 .start();
+					
+				//update the edges
+				edges = edges.data(dataset.edges);
+				
+				//draw the edges
+			    edges.enter()
+					 .append("line")
+					 .attr("class", "link");
+				
+				//update the nodes
+				nodes = nodes.data(dataset.nodes);
+				
+				//draw the nodes
+				nodes.enter()
+					 .append("circle")
+					 .attr("r", 10)
+					 .attr("id", function(d){
+						return "no" + d.id;
+					 })
+					 .attr("class", "node")
+					 .style("fill", function(d, i) {
+						return colors(i);
+					 })
+					 .on("click", function(d) {						
+						drawMsgBubble(d);
+					 })
+					 .call(force.drag);  //允许节点拖放
+			};
+			
+			//绘制节点信息提示框
+			var drawMsgBubble = function(d) {
+				//更新数据
+				msgBox.datum(d)
+					  .attr("transform", "translate(" + d.x + "," + d.y + ")");
+				if(onshow) {
+					//remove old view
+					msgBox.select("image").remove();
+					msgBox.select("text").remove();
+				}
+				else {
+					onshow = true;
+				}
+				
+				msgBox.append("image")
+					  .attr("xlink:href", "images/msg-bubble.png")
+					  .attr("x", -10)
+					  .attr("y", -128)
+					  .attr("width", 170)
+					  .attr("height", 150);
+							
+				var msg = msgBox.append("text")
+								.attr("class", "msg")
+								.attr("x", 10)
+								.attr("y", -100);
+				msg.append("tspan")  //user ID
+				   .attr("x", 10)
+				   .attr("y", -100)
+				   .text("ID: " + d.id);
+				msg.append("tspan")   //user age
+				   .attr("x", 10)
+				   .attr("y", -85)
+				   .text("Age: " + d.age);
+				msg.append("tspan")  //user gender
+				   .attr("x", 10)
+				   .attr("y", -70)
+				   .text("Gender: " + d.gender);
+				msg.append("tspan")  //user occupation
+				   .attr("x", 10)
+				   .attr("y", -55)
+				   .text("Occupation: " + d.occupation);
+				msg.append("tspan")  //user label
+				   .attr("x", 10)
+				   .attr("y", -40)
+				   .text("Label: " + d.label);
+			};
+			
+			//tick过程视图更新
+			var tickViewUpdate = function() {
+				//更新连接
+				edges.attr("x1", function(d) { return d.source.x; })
+					 .attr("y1", function(d) { return d.source.y; })
+					 .attr("x2", function(d) { return d.target.x; })
+					 .attr("y2", function(d) { return d.target.y; });
+				
+				//更新节点
+				nodes.attr("cx", function(d) { return d.x; })
+					 .attr("cy", function(d) { return d.y; });
+				
+				//更新节点信息框
+				if(onshow) {
+					msgBox.attr("transform", function(d) {
+						return "translate(" + d.x + "," + d.y + ")";
+					});
+				}
+			};
+			
+			//分类
+			var centers = [
+						{type: 0, x: 3 * width / 6, y: 2 * height / 6, fixed: true},
+						{type: 1, x: 4 * width / 6, y: 4 * height / 6, fixed: true},
+						{type: 2, x: 2 * width / 6, y: 4 * height / 6, fixed: true}
+					];
+			var center;
+			
+			//更新网络图
+			var updateSocialNetwork = function() {
+				force.links([])
+					 .on("tick", function(e) {
+						//根据类别更新数据节点
+						var k = e.alpha * .1;
+						dataset.nodes.forEach( function(node) {
+							center = centers[node.label];
+							node.x += (center.x - node.x) * k;
+							node.y += (center.y - node.y) * k;
+						});
+					
+						tickViewUpdate();
+				})
+				.start();
+		    };
+			
+			//获取分类信息文件
+			var showClassifications = function(fileName) {
+				d3.json(fileName, function(error, data) {
+					if(error) {
+						alert(error);
+						return;   //数据加载失败
+					}
+					
+					//获取分类数组
+					var classifications = [];
+					for(var i = 1; i < data.classifications.length; i++) {
+						var classification = [];
+						for(var j = 0; j < data.classifications[i].users.length; j++) {
+							classification.push(data.classifications[i].users[j].id);
+						}
+						classifications.push(classification);
+					}
+
+					//更新节点类别
+					dataset.nodes.forEach( function(node) {
+						for(var i = 0; i < classifications.length; i++) {
+							if(classifications[i].binarySearch(node.id) != -1) {
+								node.label = i + 1;
+							}
+						}
+					});
+					
+					updateSocialNetwork();  //更新网络图
+				});
+			};
+			
+			//当前选择分类方法标签ID
+			var currentTabId;
+			//决策树
+			var decisionTree = function() {
+				if(currentTabId == null) {
+					currentTabId = "decisionTree";
+				}
+				else {
+					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
+					currentTabId = "decisionTree";
+				}
+				
+				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+				
+				//获取网络图信息
+				d3.json("json/social_network.json", function(error, data) {
+					if(error) {
+						alert(error);
+						return;   //数据加载失败
+					}
+					dataset = data;
+					drawSocialNetwork();  //绘制初始网络图
+				});
+			};
+			
+			//分类
+			var classify = function() {
+				if(currentTabId == null) {
+					currentTabId = "classify";
+				}
+				else {
+					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
+					currentTabId = "classify";
+				}
+				
+				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+				
+				showClassifications("json/classify.json");
+			};
+			
+			//回归
+			var regulation = function() {
+				if(currentTabId == null) {
+					currentTabId = "regulation";
+				}
+				else {
+					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
+					currentTabId = "regulation";
+				}
+				
+				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+			};
+			
+			//节点搜索
+			var search = function() {
+				var id = parseInt(document.getElementById("userId").value);
+				
+				//显示节点信息
+				document.getElementById("nodeInfo_zone").style.display = "block";
+				document.getElementById("user_id").innerHTML = dataset.nodes[id].id;
+				document.getElementById("user_age").innerHTML = dataset.nodes[id].age;
+				document.getElementById("user_gender").innerHTML = dataset.nodes[id].gender;
+				document.getElementById("user_occupation").innerHTML = dataset.nodes[id].occupation;
+				document.getElementById("user_zip").innerHTML = dataset.nodes[id].zip;
+				document.getElementById("user_rating").innerHTML = dataset.nodes[id].rating;
+				document.getElementById("user_label").innerHTML = dataset.nodes[id].label;
+				if(dataset.nodes[id].rating > 4 || dataset.nodes[id].label == 0)
+				{
+					document.getElementById("recommendation").innerHTML = "YES";
+				}
+				else {
+					document.getElementById("recommendation").innerHTML = "NO";
+				}
+				
+				//网络图中节点显示
+				var evt = document.createEvent("MouseEvents");
+				evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+				document.getElementById("no" + id).dispatchEvent(evt);
+			};
+			
+			//数组二分搜索
+			Array.prototype.binarySearch = function(value){ 
+				var startIndex = 0, stopIndex = this.length - 1, middle = Math.floor((stopIndex + startIndex)/2); 
+				while(this[middle] != value && startIndex < stopIndex){ 
+					//adjust search area
+					if (value < this[middle]){ 
+						stopIndex = middle - 1; 
+					} else if (value > this[middle]){ 
+						startIndex = middle + 1; 
+					} 
+					//recalculate middle
+					middle = Math.floor((stopIndex + startIndex)/2); 
+				} 
+				//make sure it's the right value 
+				return (this[middle] != value) ? -1 : middle;
+			};
+		</script>
+	</body>
+</html>

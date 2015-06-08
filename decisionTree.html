@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html>  
+	<head>  
+        <meta charset="utf-8">  
+        <title>Decision Tree Classifier</title>
+		<script type="text/javascript" src="jscss/d3.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="jscss/style.css"/>
+	</head> 
+	<body>
+		<div id="menu">
+			<ul>
+				<li><a href="tfidf.html">TF-IDF</a></li>
+				<li><a href="decisionTree.html">DecisionTree</a></li>
+				<li><a href="classficationWithNetworkInformation.html">Network</a></li>
+				<li><a href="simpleLinearRegression.html">Regression</a></li>
+				<li><a href="bayes.jsp">NBC</a></li>
+				<li><a href="knn.jsp">KNN</a></li>
+				<li><a href="http://localhost:8000/njza/">KMeans</a></li>
+				<li><a href="application.html">Application</a></li>
+			</ul>
+		</div>
+		<div id="title">Decision Tree Classifier</div>
+		<div style="width: 100%; height: 630px;">
+			<div id="left_container">
+				<div id="file_upload">
+					<h3 class="zone_title">训练集导入: </h3>
+					<div class="form_zone">
+						<div style="display: inline;">
+							<input type="file" id="file_select">
+							<span id="status"></span>
+						</div>
+						<div class="button_line">
+							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
+						</div>
+					</div>
+				</div>
+				<div id="instancePredict" style="display: none">
+					<h3 class="zone_title">实例预测: </h3>
+					<div class="form_zone">					
+						<h4>实例：</h4>
+						<div id="casePredict" class="case_zone"></div>
+						<div class="button_line">
+							<input type="button" id="predict" class="button" value="预测" onclick="predict();">
+						</div>
+						<div style="display: inline; margin-top: 10px;">
+							<span id="result_title" style="margin-left: 10px; font-weight: bold;">预测结果:</span>
+							<span id="result" style="font: italic bold 14px arial,sans-serif; color:#280000;"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="right_container">
+				<h3 class="zone_title">决策树生成：</h3>
+				<div id="decisionTree" class="display_zone" style="text-align: center;">
+					<div id="waitImage" align="center" style="display: none;">
+						<img src="images/wait.gif" style="width: 80%; height: 300px;" alt="卖力训练中....">
+						<p>卖力训练中....</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="footer">
+			<p>Copyright (c) 2015. Design by Jeff </p>
+		</div>
+		<script>	
+			//上传训练集到服务器
+			var uploadFile = function() {
+				var files = document.getElementById("file_select").files;
+				if(files.length > 0) {
+					var file = files[0];	
+					
+					if(!file.type.match("text.*") && !file.type.match("application/vnd.ms-excel")) {
+						document.getElementById("status").innerHTML = "不支持该类型文件上传!";
+						return;
+					}
+					
+					document.getElementById("upload").disabled = true;
+					document.getElementById("status").innerHTML = "Uploading " + file.name;
+					var formData = new FormData();
+					formData.append("file", file);
+					
+					var xhr = new XMLHttpRequest();
+					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
+					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
+					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					xhr.open("POST", "decisionTreeServlet", true);
+					xhr.send(formData);				
+				}
+				else {
+					document.getElementById("status").innerHTML = "请选择要上传的数据集!";
+				}
+			};
+			
+			//上传进度条
+			var uploadProgress = function(event) {
+				// Note: doesn't work with async=false.
+				var progress = Math.round(event.loaded / event.total * 100);
+				document.getElementById("status").innerHTML = "Progress " + progress + "%";
+            };
+
+			//文件上传完成，不管服务器是否回复
+            var uploadComplete = function(event) {
+				document.getElementById("status").innerHTML = "数据集上传完成!";
+				document.getElementById("upload").disabled = false;
+				document.getElementById("waitImage").style.display = "block";
+            };
+			
+			//SVG相关参数
+			var width = document.getElementById("right_container").clientWidth * 0.95, height = 500, padding = 50;
+		    var tree = d3.layout.tree()
+						 .size([width - padding, height - 2 * padding])
+						 .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2); });    
+			var diagonal = d3.svg.diagonal()
+							 .projection(function(d) { return [d.x, d.y]; });
+			var svg = d3.select("#decisionTree").append("svg")
+						.attr("width", width)
+						.attr("height", height)
+						.append("g")
+						.attr("transform", "translate(" + padding + ", " + padding +")");
+			
+			//数据集训练完毕，显示结果			
+			var trainCompleted = function(event) {
+				if(event.target.readyState == 4) {
+				
+					//隐藏训练过程中的提示信息
+					document.getElementById("waitImage").style.display = "none";
+					var respText = event.target.responseText;
+					if(respText.startsWith("Error:")) {
+						alert("数据集不符合规范，决策树训练失败!");
+						return;
+					}
+					
+					//加载绘制结果数据
+					d3.json("json/decision_tree.json", function(error, root) {
+						if(error) {
+							return;  //数据加载失败
+						}
+				
+						var nodes = tree.nodes(root);
+						var links = tree.links(nodes);
+				
+						var link = svg.selectAll(".link")
+									  .data(links)
+									  .enter()
+									  .append("g")
+									  .attr("class", "link");
+				
+						link.append("path")			  
+							.attr("class", "link")
+							.attr("d", diagonal);
+					
+						link.append("text")
+							.attr("class", "linkHint")
+							.attr("dx", function(d) { return (d.source.x + d.target.x) / 2; })
+							.attr("dy", function(d) { return (d.source.y + d.target.y) / 2; })
+							.text( function(d){ return d.target.decisionBasis;});
+	
+						var node = svg.selectAll(".node")
+									  .data(nodes)
+									  .enter()
+									  .append("g")
+									  .attr("class", "node")
+									  .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+						
+						node.append("circle")
+							.attr("r", 8);
+	
+						node.append("text")
+							.attr("dy", "1.5em")
+							.style("text-anchor", "middle")
+							.text(function(d) { return d.name; });
+							
+					    //显示实例预测模块
+						document.getElementById("instancePredict").style.display = "block";
+					});
+					
+					//生成预测html视图
+					var respMsg = respText.split("[");
+					document.getElementById("result_title").innerHTML = respMsg[0] + ": ";
+					var attributeNames = respMsg[1].substr(0, respMsg[1].length - 1).split(",");
+					var casePre = document.getElementById("casePredict");
+					for(var i = 0; i < attributeNames.length; i++) {
+						var attributeName = document.createElement("div");
+						attributeName.innerHTML = attributeNames[i] + ": ";
+						attributeName.className = "attributeName";
+						
+						var attributeValue = document.createElement("input");
+						attributeValue.type="text";
+						attributeValue.name=attributeNames[i].trim();
+						attributeValue.className="attributeValue";
+						
+						attributeName.appendChild(attributeValue);
+						casePre.appendChild(attributeName);
+					}
+				}
+			}
+			
+			//实例预测
+			var predict = function() {
+				var url = "decisionTreeServlet?";
+				
+				var attributePairs = document.getElementsByClassName("attributeValue");
+				for(var i = 0; i < attributePairs.length; i++) {
+					url = url + attributePairs[i].name + "=" + attributePairs[i].value + "&";
+				}
+				url = url.substr(0, url.length - 1);
+				
+				console.log(url);
+				
+				var xhr = new XMLHttpRequest();
+				xhr.addEventListener("readystatechange", predictResult, false); //服务器处理完毕
+				xhr.open("GET", encodeURI(url), true);
+				xhr.send(null);
+			}
+			
+			var predictResult = function() {
+				if(event.target.readyState == 4) {
+					document.getElementById("result").innerHTML = event.target.responseText;
+				}
+			}
+		</script>
+	</body>
+</html>
