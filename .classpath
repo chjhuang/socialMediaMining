@@ -8,11 +8,11 @@
 	<classpathentry kind="var" path="TOMCAT_HOME/lib/annotations-api.jar"/>
 	<classpathentry kind="src" path="WEB-INF/src"/>
 	<classpathentry kind="src" output="work" path="work"/>
-	<classpathentry kind="lib" path="F:/workspace/forEclipse/NewMovieRecommandation/WEB-INF/lib/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="F:/workspace/forEclipse/NewMovieRecommandation/WEB-INF/lib/fastjson-1.2.6.jar"/>
-	<classpathentry kind="lib" path="F:/workspace/forEclipse/NewMovieRecommandation/WEB-INF/lib/Jama-1.0.3.jar"/>
-	<classpathentry kind="lib" path="F:/workspace/forEclipse/NewMovieRecommandation/WEB-INF/lib/lucene-analyzers-3.6.2.jar"/>
-	<classpathentry kind="lib" path="F:/workspace/forEclipse/NewMovieRecommandation/WEB-INF/lib/lucene-core-3.6.2.jar"/>
-	<classpathentry kind="lib" path="F:/workspace/forEclipse/NewMovieRecommandation/WEB-INF/lib/javax.servlet-3.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/hwq/Documents/GitHub/NewMovieRecommandation/WEB-INF/lib/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/hwq/Documents/GitHub/NewMovieRecommandation/WEB-INF/lib/fastjson-1.2.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/hwq/Documents/GitHub/NewMovieRecommandation/WEB-INF/lib/Jama-1.0.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/hwq/Documents/GitHub/NewMovieRecommandation/WEB-INF/lib/javax.servlet-3.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/hwq/Documents/GitHub/NewMovieRecommandation/WEB-INF/lib/lucene-analyzers-3.6.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/hwq/Documents/GitHub/NewMovieRecommandation/WEB-INF/lib/lucene-core-3.6.2.jar"/>
 	<classpathentry kind="output" path="WEB-INF/classes"/>
 </classpath>
