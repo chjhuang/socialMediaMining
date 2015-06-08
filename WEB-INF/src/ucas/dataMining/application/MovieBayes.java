@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 
 import ucas.dataMining.bayes.naiveBayes;
 import ucas.dataMining.dao.KNNUserFeature;
-import ucas.dataMining.dataAccess.FileIOUtil;
+import ucas.dataMining.util.FileIOUtil;
 
 import com.alibaba.fastjson.JSONObject;
 
