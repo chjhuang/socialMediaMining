@@ -9,6 +9,7 @@
 	<body>
 		<div id="menu">
 			<ul>
+				<li><a href="home.html">Home</a></li>
 				<li><a href="tfidf.html">TF-IDF</a></li>
 				<li><a href="decisionTree.html">DecisionTree</a></li>
 				<li><a href="classficationWithNetworkInformation.html">Network</a></li>
@@ -22,20 +23,18 @@
 		<div id="title">TF-IDF Calculator</div>
 		<div style="width: 100%; height: 630px;">
 			<div id="left_container">
-				<div id="file_upload">
-					<h3 class="zone_title">训练集导入: </h3>
+				<div id="file_upload" class="info_zone">
+					<h3 class="zone_title">数据集导入: </h3>
 					<div class="form_zone">
 						<div style="display: inline;">
 							<input type="file" id="file_select">
 							<span id="status"></span>
 						</div>
 						<div class="button_line">
-							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
+							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();" style="margin-right: 20px;">
+							<input type="button" id="calculate" class="button" value="计算" onclick="calculate();">
 						</div>
 					</div>
-				</div>
-				<div id="return" align="bottom">
-					<a href="home.html">返回主页</a>
 				</div>
 			</div>
 			<div id="right_container">
@@ -54,7 +53,7 @@
 					</div>
 					<div id="tfidfBars" style="text-align: center;">
 						<div id="waitImage" align="center" style="display: none;">
-							<img src="images/wait.gif" style="width: 80%; height: 300px;" alt="卖力计算中....">
+							<img src="images/wait.gif" style="width: 50%; height: 300px;" alt="卖力计算中....">
 							<p>卖力计算中....</p>
 						</div>
 					</div>
@@ -62,9 +61,10 @@
 			</div>
 		</div>
 		<div id="footer">
-			<p>Copyright (c) 2015. Design by Jeff </p>
+			<p>Copyright (c) 2015. Design by Group 17. </p>
 		</div>
 		<script>
+			var isUploaded = false;
 			//上传训练集到服务器
 			var uploadFile = function() {
 				var files = document.getElementById("file_select").files;
@@ -84,7 +84,7 @@
 					var xhr = new XMLHttpRequest();
 					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
 					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
-					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					xhr.addEventListener("readystatechange", saveCompleted, false); //服务器处理完毕
 					xhr.open("POST", "tfidfServlet", true);
 					xhr.send(formData);				
 				}
@@ -106,6 +106,33 @@
 				document.getElementById("upload").disabled = false;
 				document.getElementById("waitImage").style.display = "block";
             };
+			
+			//服务器保存文件完成
+			var saveCompleted = function(event) {
+				if(event.target.readyState == 4) {
+					var respText = event.target.responseText;
+					if(respText.startsWith("Error:")) {
+						alert("HTTP 500 - 内部服务器错误" + event.target.responseText);
+						document.getElementById("status").innerHTML = "数据集保存失败!";
+						return;
+					}
+					isUploaded = true;
+				}
+			};
+			
+			//计算tf-idf值
+			var calculate = function() {
+				if(!isUploaded) {
+					alert("请先上传数据集！");
+				}
+				
+				var url = "tfidfServlet";
+				
+				var xhr = new XMLHttpRequest();
+				xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+				xhr.open("GET", encodeURI(url), true);
+				xhr.send(null);
+			};
 			
 			var corpus; //文档集
 			var corpusSize; //文档集文档数

@@ -10,6 +10,7 @@
 <body>
 	<div id="menu">
 		<ul>
+			<li><a href="home.html">Home</a></li>
 			<li><a href="tfidf.html">TF-IDF</a></li>
 			<li><a href="decisionTree.html">DecisionTree</a></li>
 			<li><a href="classficationWithNetworkInformation.html">Network</a></li>
@@ -24,7 +25,7 @@
 	
 	<div style="width: 100%; height: 630px;">
 		<div id="left_container">
-			<div id="file_upload">
+			<div id="file_upload" class="info_zone">
 				<h3 class="zone_title">训练集导入: </h3>
 					<div class="form_zone">
 						<div style="display: inline;">
@@ -37,24 +38,20 @@
 					</div>
 			</div>
 			
-			<div id="information_zone">
+			<div id="information_zone" class="info_zone">
 				<h3 class="zone_title">拟合直线：</h3>
-				<lable>直线方程：</lable>
-				<input id="line" type="text"></input><br/>
-				<lable>拟 合 度：</lable>
-				<input id="r" type="text"></input>
+				<div class="attributeName">直线方程：<input id="line" type="text" class="attributeValue"></input></div>
+				<div class="attributeName">拟&nbsp;合&nbsp;度：<input id="r" type="text" class="attributeValue"></input></div>
 			</div>
-			<div id="prediction_zone">
+			<div id="prediction_zone" class="info_zone">
 				<h3 class="zone_title">回归测试：</h3>
-				<lable>输入值：</lable>
-				<input id="predict_input" type="text"></input>
-				<select id="choice">
-					<option value="height">身高</option>
-					<option value="weight">体重</option>
-				</select>
-				<br/>
-				<lable>预测值：</lable>
-				<input id="predict_val" type="text"></input><lable id="unit"></lable>
+				<div class="attributeName">输入值：<input id="predict_input" type="text" class="attributeValue"></input>			
+					<select id="choice" style="height: 25px; border-radius: 0.5em;">
+						<option value="height">身高</option>
+						<option value="weight">体重</option>
+					</select>
+				</div>
+				<div class="attributeName">预测值：<input id="predict_val" type="text" class="attributeValue"></input><lable id="unit"></lable></input></div>
 				<div class="button_line">
 					<button id="predict_bt" class="button">预测</button>
 				</div>
@@ -64,6 +61,9 @@
 				<!-- 为ECharts准备一个具备大小（宽高）的Dom -->
 				<div id="main" style="width:100%;height:100%"></div>
 		</div>	
+	</div>
+	<div id="footer">
+		<p>Copyright (c) 2015. Design by Group 17. </p>
 	</div>
     <script type="text/javascript">
 		//上传训练集到服务器
@@ -144,6 +144,7 @@
                     dataType : "json", //返回数据形式为json
                     success : function(result) {
                     if (result) {
+						alert(result);
                         data = result;            
                     }}
 					,error : function(errorMsg) {
@@ -156,6 +157,7 @@
 			
 		function drawEcharts(result){
 			// 路径配置
+			console.log(result);
 			require.config({
 				paths: {
 					echarts:'./jscss'
@@ -169,6 +171,7 @@
 				'echarts/chart/line' 
             ],
             function(ec){
+			
                 // 基于准备好的dom，初始化echarts图表
                 myChart = ec.init(document.getElementById('main')); 
                 var option = {
@@ -215,7 +218,6 @@
 							name:'散点',
 							type:'scatter',
                             data: (function(){
-										
 										var arr=[];
                                         if (result) {
                                                for(var i=0;i<result.points.length;i++){

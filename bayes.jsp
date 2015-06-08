@@ -29,6 +29,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<body>
 		<div id="menu">
 			<ul>
+				<li><a href="home.html">Home</a></li>
 				<li><a href="tfidf.html">TF-IDF</a></li>
 				<li><a href="decisionTree.html">DecisionTree</a></li>
 				<li><a href="classficationWithNetworkInformation.html">Network</a></li>
@@ -40,26 +41,32 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			</ul>
 		</div>
 		<div id="title">Naive Bayes Classifier</div>
-		<div id="left_container">
-			<div id="information_zone">
+		<div style="width: 100%; height: 630px;">
+		<div id="left_container" style="width: 20%;">
+			<div id="information_zone" class="info_zone">
 				<h3 class="zone_title">Input Test Data(Bayes):</h3>
 				<form id="data">
-					花萼长度: <input type="text" name='length1' value="5.0" style="width:100px"><br/>
+					<div class="attributeName">花萼长度: <input type="text" name='length1' value="5.0" class="attributeValue" style="width:100px;"></div>
+					<div class="attributeName">花萼高度: <input type="text" name='height1' value="3.3" class="attributeValue" style="width:100px;"></div>
+					<div class="attributeName">花瓣长度: <input type="text" name='length2' value="1.4" class="attributeValue" style="width:100px;"></div>
+					<div class="attributeName">花瓣高度: <input type="text" name='height2' value="0.2" class="attributeValue" style="width:100px;"></div>
+					<!--
 					花萼高度: <input type="text" name='height1' value="3.3" style="width:100px"><br/>
 					花瓣长度: <input type="text" name='length2' value="1.4" style="width:100px"><br/>
-					花瓣高度: <input type="text" name='height2' value="0.2" style="width:100px"><br/>
-					实际结果: 
-					<select name="result">
-						<option value="setosa" selected="selected">山鸢尾</option>
-						<option value="versicolor">变色鸢尾</option>
-						<option value="virginica">维吉尼亚鸢尾</option>
-					</select><br/>
-					<input type="button" class="button" value="确定" id="test">
+					花瓣高度: <input type="text" name='height2' value="0.2" style="width:100px"><br/>-->
+					<div class="attributeName">实际结果: 
+						<select name="result" style="height: 20px; border-radius: 0.5em;">
+							<option value="setosa" selected="selected">山鸢尾</option>
+							<option value="versicolor">变色鸢尾</option>
+							<option value="virginica">维吉尼亚鸢尾</option>
+						</select>
+					</div>
+					<input type="button" class="button" value="确定" id="test" style="margin: 10px 0 -15px 35px;">
 				</form>
 			</div>
 			
-			<div id="prediction_zone">预测结果:</div><br>
-			<div>
+			<div id="prediction_zone" class="info_zone" style="padding-top: 10px;">预测结果:</div><br>
+			<div style="margin-left: 10px;">
 				<form>
 					<input type="button" class="button" value="交叉验证" id="cross_button"/>
 					<div style="height:15px"></div>
@@ -68,13 +75,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			</div>
 		</div>
 		
-		<div id="right_container">
+		<div id="right_container" style="width: 76%;">
 			<div display="inline">
-				<div id="main" style="height:80%;width:50%;float:left;"></div>
-				<div id="main2" style="height:80%;width:50%;float:left;"></div>
+				<div id="main" style="height:94%;width:50%;float:left;"></div>
+				<div id="main2" style="height:94%;width:50%;float:left;"></div>
 			</div>
 		</div>
-
+		</div>
+		<div id="footer">
+			<p>Copyright (c) 2015. Design by Group 17. </p>
+		</div>
 <script type="text/javascript">
 	var setosa=[];
 	var versicolor=[];

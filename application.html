@@ -4,11 +4,13 @@
 		<meta charset="utf-8">
 		<title>Application</title>
 		<script type="text/javascript" src="jscss/d3.min.js"></script>
+		<script type="text/javascript" src="jscss/jquery.js"></script>
 		<link rel="stylesheet" type="text/css" href="jscss/style.css"/>
 	</head>
 	<body>
 		<div id="menu">
 			<ul>
+				<li><a href="home.html">Home</a></li>
 				<li><a href="tfidf.html">TF-IDF</a></li>
 				<li><a href="decisionTree.html">DecisionTree</a></li>
 				<li><a href="classficationWithNetworkInformation.html">Network</a></li>
@@ -22,8 +24,8 @@
 		<div id="title">Social Network-Based Movies Recommender System</div>
 		<div style="width: 100%; height: 780px;">
 			<div id="left_container">
-				<div id="file_upload">
-					<h3 class="zone_title">训练集导入: </h3>
+				<div id="file_upload" class="info_zone">
+					<h3 class="zone_title">数据集导入: </h3>
 					<div class="form_zone">
 						<div style="display: inline;">
 							<input type="file" id="file_select">
@@ -35,7 +37,15 @@
 					</div>
 				</div>
 				
-				<div id="movieInfo_zone" style="display: none;">
+				<div id="select_zone" class="info_zone">
+					<h3 class="zone_title">电影选择：</h3>
+					<div style="display: inline;">
+						<input type="text" id="movieId" class="text_block">
+						<input type="button" id="movie_select" class="button" value="Select" onclick="movieSelect();">
+					</div>
+				</div>
+				
+				<div id="movieInfo_zone" class="info_zone" style="display: none;">
 					<h3 class="zone_title">电影信息：</h3>
 					<div style="padding-left: 15px;">
 						<div class="info_item"><span>Name: </span><span id="movie_name">Toy Story (1995)</span></div>
@@ -45,14 +55,14 @@
 					</div>
 				</div>
 				
-				<div id="search_zone">
+				<div id="search_zone" class="info_zone">
 					<h3 class="zone_title">节点搜索：</h3>
 					<div style="display: inline;">
-						<input type="text" id="userId">
+						<input type="text" id="userId" class="text_block">
 						<input type="button" id="search" class="button" value="Search" onclick="search();">
 					</div>
 				</div>
-				<div id="nodeInfo_zone" style="display: none;">
+				<div id="nodeInfo_zone" class="info_zone" style="display: none;">
 					<h3 class="zone_title">节点信息：</h3>
 					<div style="padding-left: 15px;">
 						<div class="info_item"><span>ID: </span><span id="user_id">1</span></div>
@@ -66,20 +76,20 @@
 					</div>
 				</div>
 			</div>
-			<div id="right_container">
+			<div id="right_container" style="height: 750px;">
 				<h3 class="zone_title">用户网络信息图：</h3>
 				<div class="display_zone">
 					<div id="method_tab">
 						<ul>
-							<li id="decisionTree" onclick="decisionTree();">决策树</li>
-							<li id="classify" onclick="classify();">分类</li>
-							<li id="regulation" onclick="regulation();">回归</li>
-							<li onclick="">聚类</li>
+							<li id="decisionTree" onclick="decisionTree();">Decision Tree</li>
+							<li id="nativeBayes" onclick="nativeBayes();">Native Bayes</li>
+							<li id="knn" onclick="knn();">kNN</li>
+							<li id="regression" onclick="regression();">Regression</li>
 						</ul>
 					</div>
 					<div id="social_network" style="text-align: center;">
 						<div id="waitImage" align="center" style="display: none;">
-							<img src="images/wait.gif" style="width: 80%; height: 300px;" alt="卖力计算中....">
+							<img src="images/wait.gif" style="width: 50%; height: 300px; padding-top: 50px;" alt="卖力计算中....">
 							<p>卖力计算中....</p>
 						</div>
 					</div>
@@ -87,7 +97,7 @@
 			</div>
 		</div>
 		<div id="footer">
-			<p>Copyright (c) 2015. Design by Jeff </p>
+			<p>Copyright (c) 2015. Design by Group 17. </p>
 		</div>
 		<script>
 			//上传训练集到服务器
@@ -96,10 +106,12 @@
 				if(files.length > 0) {
 					var file = files[0];	
 					
+					/*
 					if(!file.type.match("text.*") && !file.type.match("application/json")) {
 						document.getElementById("status").innerHTML = "不支持该类型文件上传!";
 						return;
 					}
+					*/
 					
 					document.getElementById("upload").disabled = true;
 					document.getElementById("status").innerHTML = "Uploading...";
@@ -110,7 +122,7 @@
 					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
 					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
 					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
-					xhr.open("POST", "tfidfServlet", true);
+					xhr.open("POST", "applicationServlet", true);
 					xhr.send(formData);				
 				}
 				else {
@@ -132,17 +144,39 @@
 				document.getElementById("waitImage").style.display = "block";
             };
 			
+			var zoom = d3.behavior.zoom()
+					 .scaleExtent([1, 10])
+					 .on("zoom", zoomed);
+
+		    function zoomed() {
+				svg.attr("transform", 
+					"translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+			}
+			
 			//SVG初始化
-			var width = document.getElementById("right_container").clientWidth * 0.95, height = 650, padding = 20;					  
+			var width = document.getElementById("right_container").clientWidth * 0.95, height = 650, padding = 20, r = 5;					  
 			var svg = d3.select("#social_network").append("svg")
 						.attr("width", width)
-						.attr("height", height);
+						.attr("height", height)
+						.on("mousedown", function() {  //注册svg事件，隐藏信息框
+							if(onshow) {
+								msgBox.select("image").remove();
+								msgBox.selectAll("text").remove();
+								onshow = false;
+							}
+						})
+						.append("g")
+				        .call(zoom);
+			
+			//var network =svg.append("g")
+			//	              .call(zoom);
+			
 			//力导向图布局
 			var force = d3.layout.force()							 
-								 .charge([-100])  //节点间的电荷斥力, 绝对值越大越分散
-								 .gravity(0.05)   //节点间的引力，越小越分散
+								 .charge([-50])  //节点间的电荷斥力, 绝对值越大越分散
+								 .gravity(0.5)   //节点间的引力，越小越分散
 								 .size([width, height]);
-			//网络边		
+			//网络边
 			var edges = svg.append("g").selectAll(".link");
 			//网络节点
 			var nodes = svg.append("g").selectAll(".node");
@@ -150,15 +184,8 @@
 			var msgBox = svg.append("g").append("g")
 							.attr("class", "msgBox");
 			var onshow = false;  //当前信息框状态
-			svg.on("mousedown", function() {  //注册svg事件，隐藏信息框
-				if(onshow) {
-					msgBox.select("image").remove();
-					msgBox.selectAll("text").remove();
-					onshow = false;
-				}
-			});
 			
-			var colors = d3.scale.category20();  //颜色集
+			var colors = d3.scale.category10();  //颜色集
 						
 			var dataset;  //网络节点信息集
 			
@@ -173,16 +200,6 @@
 						alert("数据集不符合规范, 网络图构建失败！");
 						return;
 					}
-					
-					//显示电影信息
-					var movieInfo = JSON.parse(respText);
-					document.getElementById("movie_name").innerHTML = movieInfo.m_name;
-					document.getElementById("release_date").innerHTML = movieInfo.m_release_date;
-					document.getElementById("movie_url").innerHTML = movieInfo.m_url;
-					document.getElementById("movie_url").href = movieInfo.m_url;
-					document.getElementById("movie_type").innerHTML = movieInfo.m_type;
-					//显示电影信息
-					document.getElementById("movieInfo_zone").style.display = "block";
 					
 					//获取网络图信息
 					d3.json("json/social_network.json", function(error, data) {
@@ -201,10 +218,10 @@
 				//Initialize a default force layout, using the nodes and edges in dataset
 				force.nodes(dataset.nodes)
 					 .links(dataset.edges)
-					 .linkDistance([150])
+					 .linkDistance([100])
 					 .on("tick", tickViewUpdate)
 					 .start();
-					
+					 
 				//update the edges
 				edges = edges.data(dataset.edges);
 				
@@ -219,7 +236,7 @@
 				//draw the nodes
 				nodes.enter()
 					 .append("circle")
-					 .attr("r", 10)
+					 .attr("r", r)
 					 .attr("id", function(d){
 						return "no" + d.id;
 					 })
@@ -277,7 +294,7 @@
 				msg.append("tspan")  //user label
 				   .attr("x", 10)
 				   .attr("y", -40)
-				   .text("Label: " + d.label);
+				   .text("Label: " + categoryNames[d.label]);
 			};
 			
 			//tick过程视图更新
@@ -302,9 +319,11 @@
 			
 			//分类
 			var centers = [
-						{type: 0, x: 3 * width / 6, y: 2 * height / 6, fixed: true},
-						{type: 1, x: 4 * width / 6, y: 4 * height / 6, fixed: true},
-						{type: 2, x: 2 * width / 6, y: 4 * height / 6, fixed: true}
+						{type: 0, x: 2 * width / 6, y: 2 * height / 6, fixed: true},
+						{type: 1, x: 4 * width / 6, y: 2 * height / 6, fixed: true},
+						{type: 2, x: 3 * width / 6, y: 3 * height / 6, fixed: true},
+						{type: 3, x: 2 * width / 6, y: 4 * height / 6, fixed: true},
+						{type: 4, x: 4 * width / 6, y: 4 * height / 6, fixed: true}
 					];
 			var center;
 			
@@ -323,7 +342,14 @@
 						tickViewUpdate();
 				})
 				.start();
+				
+				nodes.style("fill", function(d, i) {
+						return colors(d.label);
+				});
 		    };
+			
+			//类别名
+			var categoryNames = [];
 			
 			//获取分类信息文件
 			var showClassifications = function(fileName) {
@@ -333,9 +359,11 @@
 						return;   //数据加载失败
 					}
 					
+					categoryNames = [];
 					//获取分类数组
 					var classifications = [];
-					for(var i = 1; i < data.classifications.length; i++) {
+					for(var i = 0; i < data.classifications.length; i++) {
+						categoryNames.push(data.classifications[i].label);
 						var classification = [];
 						for(var j = 0; j < data.classifications[i].users.length; j++) {
 							classification.push(data.classifications[i].users[j].id);
@@ -345,9 +373,10 @@
 
 					//更新节点类别
 					dataset.nodes.forEach( function(node) {
+						node.label = 0;   //恢复默认label值
 						for(var i = 0; i < classifications.length; i++) {
 							if(classifications[i].binarySearch(node.id) != -1) {
-								node.label = i + 1;
+								node.label = i;
 							}
 						}
 					});
@@ -370,43 +399,125 @@
 				
 				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
 				
-				//获取网络图信息
-				d3.json("json/social_network.json", function(error, data) {
-					if(error) {
-						alert(error);
-						return;   //数据加载失败
+				showClassifications("json/decisionTree.json");
+			};
+			
+			//NBC
+			var nativeBayes = function() {
+				if(currentTabId == null) {
+					currentTabId = "nativeBayes";
+				}
+				else {
+					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
+					currentTabId = "nativeBayes";
+				}
+				
+				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+				
+				showClassifications("json/bayes.json");
+			};
+			
+			//kNN
+			var knn = function() {
+				if(currentTabId == null) {
+					currentTabId = "knn";
+				}
+				else {
+					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
+					currentTabId = "knn";
+				}
+				
+				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+				
+				showClassifications("json/knn.json");
+			};
+			
+			//回归		
+			var regression = function(path) {
+				if(currentTabId == null) {
+					currentTabId = "regression";
+				}
+				else {
+					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
+					currentTabId = "regression";
+				}
+				
+				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+				
+				d3.json("json/mutiLinearRegression.json", function(error,root){
+					if( error ){
+						return console.log(error);
 					}
-					dataset = data;
-					drawSocialNetwork();  //绘制初始网络图
-				});
+				
+					var forcer = d3.layout.force()	
+								   .nodes(root)					
+								   .size([width, height])
+						           .charge(-100)
+						           .gravity(0.02)
+						           .start();
+								
+					svg.html("");
+					var rNodes = svg.selectAll("circle")
+								    .data(root)
+									.enter()
+								    .append("circle")
+								    .attr("r",function(d){
+										return d.score*15;
+									})
+									.style("fill",function(d,i){
+										return colors(i);
+									})
+									.call(force.drag);
+				
+					var text_dx = -20;
+					var text_dy = 20;
+				
+					var nodes_text = svg.selectAll(".nodetext")
+									.data(root)
+									.enter()
+									.append("text")
+									.attr("class","nodetext")
+									.attr("dx",text_dx)
+									.attr("dy",text_dy)
+									.text(function(d){
+										return d.name;
+									});
+				
+									
+					forcer.on("tick", function(){					 
+						rNodes.attr("cx",function(d){ return d.x ;});
+						rNodes.attr("cy",function(d){ return d.y ; });
+					 
+						nodes_text.attr("dx",function(d){ return d.x ;});
+						nodes_text.attr("dy",function(d){ return d.y ; });
+					});
+				});					
 			};
 			
-			//分类
-			var classify = function() {
-				if(currentTabId == null) {
-					currentTabId = "classify";
-				}
-				else {
-					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
-					currentTabId = "classify";
-				}
+			//电影选择
+			var movieSelect = function() {
+				var url = "applicationServlet?id=" + document.getElementById("movieId").value;
 				
-				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+				console.log(url);
 				
-				showClassifications("json/classify.json");
+				var xhr = new XMLHttpRequest();
+				xhr.addEventListener("readystatechange", movieInfo, false); //服务器处理完毕
+				xhr.open("GET", encodeURI(url), true);
+				xhr.send(null);
 			};
 			
-			//回归
-			var regulation = function() {
-				if(currentTabId == null) {
-					currentTabId = "regulation";
+			var movieInfo = function() {
+				if(event.target.readyState == 4) {
+					//设置电影信息
+					var movieInfo = JSON.parse(event.target.responseText);
+					document.getElementById("movie_name").innerHTML = movieInfo.movie_name;
+					document.getElementById("release_date").innerHTML = movieInfo.release_data;
+					document.getElementById("movie_url").innerHTML = decodeURI(movieInfo.movie_url);
+					document.getElementById("movie_url").href = decodeURI(movieInfo.movie_url);
+					document.getElementById("movie_type").innerHTML = movieInfo.movie_type;
+					//显示电影信息
+					document.getElementById("movieInfo_zone").style.display = "block";
 				}
-				else {
-					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
-					currentTabId = "regulation";
-				}
-				
-				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
 			};
 			
 			//节点搜索
@@ -421,7 +532,7 @@
 				document.getElementById("user_occupation").innerHTML = dataset.nodes[id].occupation;
 				document.getElementById("user_zip").innerHTML = dataset.nodes[id].zip;
 				document.getElementById("user_rating").innerHTML = dataset.nodes[id].rating;
-				document.getElementById("user_label").innerHTML = dataset.nodes[id].label;
+				document.getElementById("user_label").innerHTML = categoryNames[dataset.nodes[id].label];
 				if(dataset.nodes[id].rating > 4 || dataset.nodes[id].label == 0)
 				{
 					document.getElementById("recommendation").innerHTML = "YES";
