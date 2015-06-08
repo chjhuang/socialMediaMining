@@ -43,31 +43,6 @@
   	</servlet-mapping>
   	
   	<!-- 均煌 -->
-  	<servlet>
-		<servlet-name>decisionTreeProcessor</servlet-name>
-		<servlet-class>ucas.dataMining.servlets.DecisionTreeServlet</servlet-class>
-  	</servlet>
-  	<servlet>
-		<servlet-name>tfidfProcessor</servlet-name>
-		<servlet-class>ucas.dataMining.servlets.TFIDFServlet</servlet-class>
-  	</servlet>
-	<servlet>
-		<servlet-name>applicationProcessor</servlet-name>
-		<servlet-class>ucas.dataMining.servlets.ApplicationServlet</servlet-class>
-	</servlet>
-  	
-  	<servlet-mapping>
-		<servlet-name>decisionTreeProcessor</servlet-name>
-		<url-pattern>/decisionTreeServlet</url-pattern>
-  	</servlet-mapping>
-  	<servlet-mapping>
-		<servlet-name>tfidfProcessor</servlet-name>
-		<url-pattern>/tfidfServlet</url-pattern>
-  	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>applicationProcessor</servlet-name>
-		<url-pattern>/applicationServlet</url-pattern>
-  	</servlet-mapping>
     
     <servlet-mapping>
     	<servlet-name>default</servlet-name>
