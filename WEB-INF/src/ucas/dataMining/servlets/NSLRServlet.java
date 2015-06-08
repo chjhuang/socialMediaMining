@@ -16,8 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import ucas.dataMining.dao.DataPoint;
-import ucas.dataMining.dataAccess.FileIOUtil;
 import ucas.dataMining.regression.SimpleLinearRegression;
+import ucas.dataMining.util.FileIOUtil;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;

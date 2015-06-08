@@ -10,15 +10,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-
 import ucas.dataMining.dao.Movie;
 import ucas.dataMining.dao.Node;
 import ucas.dataMining.dao.Relation;
 import ucas.dataMining.dao.SimilarUser;
 import ucas.dataMining.dao.User;
 import ucas.dataMining.regression.MultipleLinearRegression;
+import ucas.dataMining.util.FileIOUtil;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 class mycmp implements Comparator<User>  
 {  

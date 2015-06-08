@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 
 public class FileIOUtil {
 	
@@ -33,16 +35,13 @@ public class FileIOUtil {
 	 */
 
 	public static void writeToFile(String content, String savePath) throws IOException {
-		File txt = new File(savePath);
-		if (!txt.exists()) {
-			txt.createNewFile();
-		}
-		byte bytes[] = new byte[512];
-		bytes = content.getBytes(); // 新加的
-		int b = content.length(); // 改
-		FileOutputStream fos = new FileOutputStream(txt);
-		fos.write(bytes, 0, b);
-		fos.close();
+		FileWriter fw = new FileWriter(savePath);
+		PrintWriter out = new PrintWriter(fw);
+		out.write(content);
+		out.println();
+		fw.close();
+		out.close();
+
 	}
 	
 	/**

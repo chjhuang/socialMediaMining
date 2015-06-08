@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import ucas.dataMining.dao.KNNUserFeature;
-import ucas.dataMining.dataAccess.FileIOUtil;
+import ucas.dataMining.util.FileIOUtil;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
