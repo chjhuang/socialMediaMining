@@ -4,6 +4,7 @@
 		<meta charset="utf-8">
 		<title>TF-IDF Calculator</title>
 		<script type="text/javascript" src="jscss/d3.min.js"></script>
+		<script type="text/javascript" src="jscss/jquery.js"></script>
 		<link rel="stylesheet" type="text/css" href="jscss/style.css"/>
 	</head>
 	<body>
@@ -123,7 +124,11 @@
 			var calculate = function() {
 				if(!isUploaded) {
 					alert("请先上传数据集！");
+					return;
 				}
+				
+				document.getElementById("hint").style.display = "none";
+				svg.html("");   //清空svg
 				
 				var url = "tfidfServlet";
 				
@@ -157,7 +162,7 @@
 					
 					var respText = event.target.responseText;
 					if(respText.startsWith("Error:")) {
-						alert("数据集不符合规范，决策树训练失败!");
+						alert("数据集不符合规范，后台计算失败!");
 						return;
 					}
 					

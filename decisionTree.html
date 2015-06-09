@@ -4,6 +4,7 @@
         <meta charset="utf-8">  
         <title>Decision Tree Classifier</title>
 		<script type="text/javascript" src="jscss/d3.min.js"></script>
+		<script type="text/javascript" src="jscss/jquery.js"></script>
 		<link rel="stylesheet" type="text/css" href="jscss/style.css"/>
 	</head> 
 	<body>
@@ -31,19 +32,13 @@
 							<span id="status"></span>
 						</div>
 						<div class="button_line">
-							<input type="button" id="upload" class="button" value="上传" onclick="fileUpload();" style="margin-right: 10px;">
+							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();" style="margin-right: 10px;">
 							<input type="button" id="training" class="button" value="训练" onclick="training();" style="margin-right: 10px;">
 							<input type="button" id="test" class="button" value="测试" onclick="test();">
 						</div>
 					</div>
 				</div>
-				<div id="test_zone" class="info_zone">
-					<h3 class="zone_title">LOO-CV测试结果: </h3>
-					<div id="test_result">
-						训练样例：15 &nbsp;&nbsp;错误样例：2 &nbsp;&nbsp;正确率：90%
-					</div>
-				</div>
-				<div id="instancePredict" class="info_zone" style="display: none">
+				<div id="instancePredict" class="info_zone" style="display: none;">
 					<h3 class="zone_title">实例预测: </h3>
 					<div class="form_zone">
 						<h4>实例：</h4>
@@ -55,6 +50,12 @@
 							<span id="result_title" style="margin-left: 10px; font-weight: bold;">预测结果:</span>
 							<span id="result" style="font: italic bold 14px arial,sans-serif; color:#280000;"></span>
 						</div>
+					</div>
+				</div>
+				<div id="test_zone" class="info_zone" style="display: none;">
+					<h3 class="zone_title">LOO-CV测试结果: </h3>
+					<div id="test_result">
+						训练样例：15 &nbsp;&nbsp;错误样例：2 &nbsp;&nbsp;正确率：90%
 					</div>
 				</div>
 			</div>
@@ -72,21 +73,9 @@
 			<p>Copyright (c) 2015. Design by Group 17. </p>
 		</div>
 		<script>
-			var dataType;  //数据类型
+			var isUploaded = false;
 			//上传训练集到服务器
-			var trainSetUpload = function() {
-				dataType = "trainSet";
-				fileUpload();
-			};
-			
-			//上传测试集到服务器
-			var testSetUpload = function() {
-				dataType = "testSet";
-				fileUpload();
-			};
-			
-			//上传数据集到服务器
-			var fileUpload = function() {
+			var uploadFile = function() {
 				var files = document.getElementById("file_select").files;
 				if(files.length > 0) {
 					var file = files[0];	
@@ -99,15 +88,14 @@
 					document.getElementById("upload").disabled = true;
 					document.getElementById("status").innerHTML = "Uploading...";
 					var formData = new FormData();
-					formData.append("dataType", dataType);
 					formData.append("file", file);
 					
 					var xhr = new XMLHttpRequest();
 					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
 					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
-					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					xhr.addEventListener("readystatechange", saveCompleted, false); //服务器处理完毕
 					xhr.open("POST", "decisionTreeServlet", true);
-					xhr.send(formData);
+					xhr.send(formData);				
 				}
 				else {
 					document.getElementById("status").innerHTML = "请选择要上传的数据集!";
@@ -125,8 +113,63 @@
             var uploadComplete = function(event) {
 				document.getElementById("status").innerHTML = "数据集上传完成!";
 				document.getElementById("upload").disabled = false;
-				document.getElementById("waitImage").style.display = "block";
             };
+			
+			//服务器保存文件完成
+			var saveCompleted = function(event) {
+				if(event.target.readyState == 4) {
+					var respText = event.target.responseText;
+					if(respText.startsWith("Error:")) {
+						alert("HTTP 500 - 内部服务器错误" + event.target.responseText);
+						document.getElementById("status").innerHTML = "数据集保存失败!";
+						return;
+					}
+					isUploaded = true;
+				}
+			};
+			
+			var actionType;
+			//决策树训练
+			var training = function() {
+				if(!isUploaded) {
+					alert("请先上传数据集！");
+					return;
+				}
+				
+				document.getElementById("test").disabled = true;
+				svg.html("");   //清空svg
+				$("#casePredict").html("");
+				document.getElementById("instancePredict").style.display = "none";
+				actionType = "training";
+				actionRequest(actionType);
+			};
+			
+			//测试
+			var test = function() {
+				if(!isUploaded) {
+					alert("请先上传数据集！");
+					return;
+				}
+				
+				document.getElementById("test_zone").style.display = "none";
+				document.getElementById("training").disabled = true;
+				actionType = "test";
+				actionRequest(actionType);
+			};
+			
+			var actionRequest = function(type) {
+				var url = "decisionTreeServlet?type=" + type;
+				
+				var xhr = new XMLHttpRequest();
+				xhr.addEventListener("readystatechange", processedCompleted, false); //服务器处理完毕
+				xhr.open("GET", encodeURI(url), true);
+				xhr.send(null);
+				
+				if(type == "training") {
+					//等待响应
+					document.getElementById("waitImage").style.display = "block";
+				}
+			};
 			
 			//SVG相关参数
 			var width = document.getElementById("right_container").clientWidth * 0.95, height = 500, padding = 50;
@@ -141,16 +184,16 @@
 						.append("g")
 						.attr("transform", "translate(" + padding + ", " + padding +")");
 			
-			//数据集训练完毕，显示结果			
-			var trainCompleted = function(event) {
+			//数据集训练完毕，显示结果
+			var processedCompleted = function(event) {
 				if(event.target.readyState == 4) {
 					var respText = event.target.responseText;
 					if(respText.startsWith("Error:")) {
-						alert("数据集不符合要求, 后台处理失败!");
+						alert("数据集不符合规范, 后台处理失败!");
 						return;
 					}
 					
-					if(dataType == "trainSet") {
+					if(actionType == "training") {
 						//隐藏训练过程中的提示信息
 						document.getElementById("waitImage").style.display = "none";
 					
@@ -215,24 +258,26 @@
 						}
 						
 						document.getElementById("instancePredict").style.display = "block";
+						document.getElementById("test").disabled = false;
 					}
 					else {
+						document.getElementById("test_result").innerHTML = respText.replace(/ /g, "&nbsp;");
 						//显示测试结果
+						document.getElementById("test_zone").style.display = "block";
+						document.getElementById("training").disabled = false;
 					}
 				}
 			};
 			
 			//实例预测
 			var predict = function() {
-				var url = "decisionTreeServlet?";
+				var url = "decisionTreeServlet?type=predict&";
 				
 				var attributePairs = document.getElementsByClassName("attributeValue");
 				for(var i = 0; i < attributePairs.length; i++) {
 					url = url + attributePairs[i].name + "=" + attributePairs[i].value + "&";
 				}
 				url = url.substr(0, url.length - 1);
-				
-				console.log(url);
 				
 				var xhr = new XMLHttpRequest();
 				xhr.addEventListener("readystatechange", predictResult, false); //服务器处理完毕
