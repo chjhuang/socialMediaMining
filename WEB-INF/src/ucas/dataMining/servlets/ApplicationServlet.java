@@ -13,12 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import ucas.dataMining.application.BuildUserNetwork;
-import ucas.dataMining.application.MovieBayes;
-import ucas.dataMining.application.MovieKnn;
 import ucas.dataMining.dao.Movie;
+import ucas.dataMining.dao.User;
 import ucas.dataMining.dataAccess.DataFactory;
 import ucas.dataMining.util.FileIOUtil;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 @MultipartConfig
@@ -36,19 +36,39 @@ public class ApplicationServlet extends HttpServlet {
 		// 处理传入的文件
 		try {
 			List<Movie> movies = DataFactory.getAllMovies();
+			List<User> users = DataFactory.getAllUsers();
 			for (Movie movie : movies) {
 				if(movie.getId().equals(movieId))
 				{
 					targetMovie = movie;
 				}
 			}
+			JSONObject jsonBuilder = new JSONObject(); 
 			JSONObject movie = new JSONObject();
-
+			
+			JSONArray ratingUserArray = new JSONArray();
+			movie.put("movie_id", targetMovie.getId());
 			movie.put("movie_name",targetMovie.getName());
 			movie.put("release_date", targetMovie.getShowTime());
 			movie.put("movie_type", DataFactory.getMovieFeatureString(targetMovie.getTags()));
-
-			responseMessage = movie.toJSONString();
+			
+			for(User user:users)
+			{
+				if(user.getRatings().containsKey(movieId))
+				{
+					Integer rating = user.getRatings().get(movieId);
+					JSONObject ratingUser = new JSONObject();
+					ratingUser.put("user_id", user.getId());
+					ratingUser.put("rating", rating);
+					ratingUserArray.add(ratingUser);
+				}
+			}
+			
+			jsonBuilder.put("movie", movie);
+			jsonBuilder.put("ratingUsers", ratingUserArray);
+			
+			responseMessage = jsonBuilder.toJSONString();
+			System.out.println(responseMessage);
 
 		} catch (Exception ex) {
 			responseMessage = "Error: " + ex.getMessage();
@@ -68,8 +88,8 @@ public class ApplicationServlet extends HttpServlet {
 		
 		//获取上传文件
 		Part file = request.getPart("file");
-		String movieID = request.getParameter("movieID");
-		System.out.println("请求的movieID:"+movieID);
+//		String movieID = request.getParameter("movieID");
+//		System.out.println("请求的movieID:"+movieID);
 		
 		InputStream fileStream = file.getInputStream();
 		//将输入流写入内存
@@ -81,34 +101,34 @@ public class ApplicationServlet extends HttpServlet {
 		
 		//1、构建网络
 		BuildUserNetwork.buildAndSave(request.getServletContext().getRealPath(
-				".\\json\\social_network.json"),"1014");
+				".\\json\\social_network.json"));
 		
 		long buildNetwork = System.currentTimeMillis();
 		long time1 =buildNetwork-start;
 		System.out.println("网络构建时间："+time1+"ms");
 		
-		//2、Bayes算法
-		MovieBayes mk=new MovieBayes();
-		mk.init(".\\uploadFile\\movie_user.json");
-		//在这输入想要存储的路径
-		String bayesPath = request.getServletContext().getRealPath(
-				".\\json\\bayes.json");
-		mk.getClassfiledResult("1014",bayesPath);
-		
-		long movieBayes = System.currentTimeMillis();
-		long time2 =movieBayes-start;
-		System.out.println("Bayes时间："+time2+"ms");
-		
-		//3、KNN算法
-		MovieKnn mknn=new MovieKnn();
-		mknn.init(".\\json\\movie_user.json");
-		
-		String knnPath = request.getServletContext().getRealPath(
-				".\\json\\knn.json");
-		mknn.getClassfiledResult("1014",knnPath);
-		long end = System.currentTimeMillis();
-		long time3 =end-start;
-		System.out.println("运行时间："+time3+"ms");
+//		//2、Bayes算法
+//		MovieBayes mk=new MovieBayes();
+//		mk.init(".\\uploadFile\\movie_user.json");
+//		//在这输入想要存储的路径
+//		String bayesPath = request.getServletContext().getRealPath(
+//				".\\json\\bayes.json");
+//		mk.getClassfiledResult("1014",bayesPath);
+//		
+//		long movieBayes = System.currentTimeMillis();
+//		long time2 =movieBayes-start;
+//		System.out.println("Bayes时间："+time2+"ms");
+//		
+//		//3、KNN算法
+//		MovieKnn mknn=new MovieKnn();
+//		mknn.init(".\\json\\movie_user.json");
+//		
+//		String knnPath = request.getServletContext().getRealPath(
+//				".\\json\\knn.json");
+//		mknn.getClassfiledResult("1014",knnPath);
+//		long end = System.currentTimeMillis();
+//		long time3 =end-start;
+//		System.out.println("运行时间："+time3+"ms");
 	}
 	
 	

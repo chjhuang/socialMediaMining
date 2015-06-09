@@ -40,7 +40,7 @@ public class BuildUserNetwork {
 	 *返回为JSONObject
 	 */
 	private static JSONObject buildSocialJson(
-						List<User> users,List<Movie>movies,List<SimilarUser> susers,String movieID){
+						List<User> users,List<Movie>movies,List<SimilarUser> susers){
 		JSONObject jsonBuilder = new JSONObject();
 		int countnode = 0;
 		//对用户排序
@@ -62,10 +62,7 @@ public class BuildUserNetwork {
 				node.put("gender", users.get(i).gender);
 				node.put("occupation", users.get(i).occupation);
 				node.put("zip", users.get(i).zipcode);
-				if(tmpmap.get(movieID)==null)
-					node.put("rating", 0);
-				else 
-					node.put("rating", tmpmap.get(movieID));
+				node.put("rating", 0);
 				node.put("label", 0);
 				nodesList.add(node);
 				countnode++;
@@ -87,7 +84,7 @@ public class BuildUserNetwork {
 	}
 	
 	
-	public static void buildAndSave(String savaPath,String movieID)
+	public static void buildAndSave(String savaPath)
 	{
 		//doSimilar求用户对，users为@郭郭，原始处理的，20（超过）为相同的评价电影数目，0.9（超过）为余弦值,
 		//返回值为susers<list>表,u_id1,u_id2,cos值
@@ -97,7 +94,7 @@ public class BuildUserNetwork {
 		//buildSocialJson为求social_network.json，users，movies，susers为所求list，"Barbarella"为电影名
 		//返回值为某个特定电影的网络(所有用户的id)json文件.
 		socialnetwork = buildSocialJson(DataFactory.getAllUsers(),DataFactory.getAllMovies(),
-				DataFactory.getSimilarUser(),movieID);
+				DataFactory.getSimilarUser());
 		try {
 			FileIOUtil.writeToFile(JSONObject.toJSONString(socialnetwork),savaPath);//写出json文件
 		} catch (IOException e) {
