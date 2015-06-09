@@ -109,7 +109,7 @@ public class BuildUserNetwork implements Runnable{
 	public void run() {
 		String savePath = FileIOUtil.rootPath+"\\json\\social_network.json";
 		buildAndSave(savePath);
-		
+		System.out.println("用户网络构建完成");
 		Flags.networkBuilt = true;
 	}
 	

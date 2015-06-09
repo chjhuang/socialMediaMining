@@ -37,6 +37,7 @@ public class ApplicationServlet extends HttpServlet {
 		
 		String responseMessage = "";
 		String requestType =  request.getParameter("type");
+		System.out.println("请求类型是:"+requestType);
 		
 		if(requestType.equals("buildNetwork"))
 		{
@@ -174,7 +175,10 @@ public class ApplicationServlet extends HttpServlet {
 		//1、构建网络
 		Thread buildNetwork = new Thread(new BuildUserNetwork());
 		buildNetwork.start();
-				
+		System.out.println("");
+		response.setContentType("text/plain");
+		response.setCharacterEncoding("UTF-8");
+		response.getWriter().write("");		
 	}
 	
 	
