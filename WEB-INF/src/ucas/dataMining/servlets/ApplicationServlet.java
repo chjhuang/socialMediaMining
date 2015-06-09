@@ -25,7 +25,7 @@ import com.alibaba.fastjson.JSONObject;
 @WebServlet("/applicationServlet")
 public class ApplicationServlet extends HttpServlet {
 	private static final long serialVersionUID = 7873646937656665027L;
-
+	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
@@ -68,9 +68,13 @@ public class ApplicationServlet extends HttpServlet {
 		
 		//获取上传文件
 		Part file = request.getPart("file");
+		String movieID = request.getParameter("movieID");
+		System.out.println("请求的movieID:"+movieID);
+		
 		InputStream fileStream = file.getInputStream();
 		//将输入流写入内存
 		String fileContent = FileIOUtil.readInputStream(fileStream);
+		
 		//将写入内存中的json格式的内容加载为对象
 		DataFactory.LoadData(fileContent);
 		//利用加载的对象进行算法的实现,将执行结果存入指定的文件夹
@@ -82,6 +86,7 @@ public class ApplicationServlet extends HttpServlet {
 		long buildNetwork = System.currentTimeMillis();
 		long time1 =buildNetwork-start;
 		System.out.println("网络构建时间："+time1+"ms");
+		
 		//2、Bayes算法
 		MovieBayes mk=new MovieBayes();
 		mk.init(".\\uploadFile\\movie_user.json");

@@ -46,7 +46,7 @@ public class DataFactory {
 			loadedData = true;
 		}
 		else{
-			System.out.println("数据已加载");
+			//System.out.println("数据已加载");
 		}
 	}
 	

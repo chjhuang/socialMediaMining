@@ -41,7 +41,7 @@
 					<h3 class="zone_title">电影选择：</h3>
 					<div style="display: inline;">
 						<input type="text" id="movieId" class="text_block">
-						<input type="button" id="movie_select" class="button" value="Select" onclick="movieSelect();">
+						<input type="button" id="movie_select" class="button" value="选择" onclick="movieSelect();">
 					</div>
 				</div>
 				
@@ -59,7 +59,7 @@
 					<h3 class="zone_title">节点搜索：</h3>
 					<div style="display: inline;">
 						<input type="text" id="userId" class="text_block">
-						<input type="button" id="search" class="button" value="Search" onclick="search();">
+						<input type="button" id="search" class="button" value="查询" onclick="search();">
 					</div>
 				</div>
 				<div id="nodeInfo_zone" class="info_zone" style="display: none;">
@@ -115,8 +115,15 @@
 					
 					document.getElementById("upload").disabled = true;
 					document.getElementById("status").innerHTML = "Uploading...";
+					var movieID = document.getElementById("movieId").value;
+					
 					var formData = new FormData();
 					formData.append("file", file);
+					if(movieID==""){
+						movieID="1014";
+					}
+					console.log(movieID);
+					formData.append("movieID",movieID);
 					
 					var xhr = new XMLHttpRequest();
 					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
