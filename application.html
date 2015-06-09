@@ -33,6 +33,7 @@
 						</div>
 						<div class="button_line">
 							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
+							<input type="button" id="build_network" class="button" value="构建用户网络" onclick="buildNetwork();" style="width: 120px; margin-left: 20px;">
 						</div>
 					</div>
 				</div>
@@ -48,9 +49,10 @@
 				<div id="movieInfo_zone" class="info_zone" style="display: none;">
 					<h3 class="zone_title">电影信息：</h3>
 					<div style="padding-left: 15px;">
+						<div class="info_item"><span>ID: </span><span id="movie_id">10</span></div>
 						<div class="info_item"><span>Name: </span><span id="movie_name">Toy Story (1995)</span></div>
 						<div class="info_item"><span>Release Date: </span><span id="release_date">01-Jan-1995</span></div>
-						<div class="info_item"><span>IMDb URL: </span><a id="movie_url" href="http://us.imdb.com/M/title-exact?Toy%20Story%20(1995)">http://us.imdb.com/M/title-exact?Toy%20Story%20(1995)</a></div>
+						<!--<div class="info_item"><span>IMDb URL: </span><a id="movie_url" href="http://us.imdb.com/M/title-exact?Toy%20Story%20(1995)">http://us.imdb.com/M/title-exact?Toy%20Story%20(1995)</a></div>-->
 						<div class="info_item"><span>Movie Type: </span><span id="movie_type">Toy Story (1995)</span></div>
 					</div>
 				</div>
@@ -100,6 +102,7 @@
 			<p>Copyright (c) 2015. Design by Group 17. </p>
 		</div>
 		<script>
+			var isUploaded = false;
 			//上传训练集到服务器
 			var uploadFile = function() {
 				var files = document.getElementById("file_select").files;
@@ -115,22 +118,16 @@
 					
 					document.getElementById("upload").disabled = true;
 					document.getElementById("status").innerHTML = "Uploading...";
-					var movieID = document.getElementById("movieId").value;
 					
 					var formData = new FormData();
 					formData.append("file", file);
-					if(movieID==""){
-						movieID="1014";
-					}
-					console.log(movieID);
-					formData.append("movieID",movieID);
 					
 					var xhr = new XMLHttpRequest();
 					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
 					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
-					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					xhr.addEventListener("readystatechange", saveCompleted, false); //服务器处理完毕
 					xhr.open("POST", "applicationServlet", true);
-					xhr.send(formData);				
+					xhr.send(formData);
 				}
 				else {
 					document.getElementById("status").innerHTML = "请选择要上传的数据集!";
@@ -148,8 +145,101 @@
             var uploadComplete = function(event) {
 				document.getElementById("status").innerHTML = "数据集上传完成!";
 				document.getElementById("upload").disabled = false;
-				document.getElementById("waitImage").style.display = "block";
             };
+			
+			//服务器保存文件完成
+			var saveCompleted = function(event) {
+				if(event.target.readyState == 4) {
+					var respText = event.target.responseText;
+					if(respText.startsWith("Error:")) {
+						alert("HTTP 500 - 内部服务器错误" + event.target.responseText);
+						document.getElementById("status").innerHTML = "数据集保存失败!";
+						return;
+					}
+					isUploaded = true;
+				}
+			};
+			
+			var actionType;
+			var lock = false;
+			//构建网络
+			var buildNetwork = function() {
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
+				if(!isUploaded) {
+					alert("请先上传数据集！");
+					return;
+				}
+				
+				svg.html("");   //清空svg
+				actionType = "buildNetwork";
+				actionRequest(actionType, "");
+				document.getElementById("waitImage").style.display = "block";
+			};
+			
+			//电影选择
+			var movieSelect = function() {
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
+				actionType = "movieSelect";
+				actionRequest(actionType, "&id=" + document.getElementById("movieId").value);
+				document.getElementById("movieInfo_zone").style.display = "none";
+			};
+			
+			//决策树
+			var decisionTree = function() {
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
+				actionType = "decisionTree";
+				actionRequest(actionType, "");
+			};
+			
+			//NBC
+			var nativeBayes = function() {
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
+				actionType = "NBC";
+				actionRequest(actionType, "");
+			};
+			
+			//knn
+			var knn = function() {
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
+				actionType = "kNN";
+				actionRequest(actionType, "");
+			};
+			
+			//回归
+			var regression = function() {
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
+				actionType = "regression";
+				actionRequest(actionType, "");
+			};
+			
+			var actionRequest = function(type, param) {
+				var url = "applicationServlet?type=" + type + param;
+				
+				var xhr = new XMLHttpRequest();
+				xhr.addEventListener("readystatechange", processedCompleted, false); //服务器处理完毕
+				xhr.open("GET", encodeURI(url), true);
+				xhr.send(null);
+				
+				lock = true; //加锁
+			};
 			
 			var zoom = d3.behavior.zoom()
 					 .scaleExtent([1, 10])
@@ -197,28 +287,57 @@
 			var dataset;  //网络节点信息集
 			
 			//网络构造完毕，显示网络
-			var trainCompleted = function(event) {
+			var processedCompleted = function(event) {
 				if(event.target.readyState == 4) {
-					//隐藏计算过程中的提示信息
-					document.getElementById("waitImage").style.display = "none";
-					
+					lock = false;  //释放锁
 					var respText = event.target.responseText;
 					if(respText.startsWith("Error:")) {
-						alert("数据集不符合规范, 网络图构建失败！");
+						alert("请求不符合规范, 后台处理失败!");
 						return;
 					}
 					
-					//获取网络图信息
-					d3.json("json/social_network.json", function(error, data) {
-						if(error) {
-							alert(error);
-							return;   //数据加载失败
-						}
-						dataset = data;
-						drawSocialNetwork();  //绘制初始网络图
-					});
+					if(actionType == "buildNetwork") {
+						//隐藏计算过程中的提示信息
+						document.getElementById("waitImage").style.display = "none";
+					
+						//获取网络图信息
+						d3.json("json/social_network.json", function(error, data) {
+							if(error) {
+								alert(error);
+								return;   //数据加载失败
+							}
+							dataset = data;
+							drawSocialNetwork();  //绘制初始网络图
+						});
+					}
+					else if(actionType == "movieSelect") {
+						//设置电影信息
+						var movieInfo = JSON.parse(event.target.responseText);
+						console.log(movieInfo);
+						document.getElementById("movie_id").innerHTML = movieInfo.movie.movie_id;
+						document.getElementById("movie_name").innerHTML = movieInfo.movie.movie_name;
+						document.getElementById("release_date").innerHTML = movieInfo.movie.release_date;										
+						document.getElementById("movie_type").innerHTML = movieInfo.movie.movie_type;
+						//显示电影信息
+						document.getElementById("movieInfo_zone").style.display = "block";
+						
+						//区分显示评分用户和未评分用户
+						showGroundTruth(movieInfo.ratingUsers);
+					}
+					else if(actionType == "decisionTree"){
+						decisionTreeShow();
+					}
+					else if(actionType == "NBC") {
+						nativeBayesShow();
+					}
+					else if(actionType == "kNN") {
+						knnShow();
+					}
+					else {
+						regressionShow();
+					}
 				}
-			}
+			};
 			
 			//绘制初始网络图
 			var drawSocialNetwork = function() {
@@ -351,9 +470,31 @@
 				.start();
 				
 				nodes.style("fill", function(d, i) {
+					if(d.rating == 0) {
 						return colors(d.label);
+					}
 				});
 		    };
+			
+			//区分显示评分用户和未评分用户
+			var showGroundTruth = function(ratingUsers) {
+				var index = 0;
+				dataset.nodes.forEach( function(node) {
+					if(node.id == ratingUsers[index].userId) {
+						node.rating = ratingUsers[index].rating;
+						index++;
+					}
+				});    //更新评分
+				
+				nodes.style("fill", function(d, i) {
+					if(d.rating == 0) {
+						return colors(7);
+					}
+					else {
+						return colors(8);
+					}
+				});   //更新节点颜色
+			};
 			
 			//类别名
 			var categoryNames = [];
@@ -395,7 +536,7 @@
 			//当前选择分类方法标签ID
 			var currentTabId;
 			//决策树
-			var decisionTree = function() {
+			var decisionTreeShow = function() {
 				if(currentTabId == null) {
 					currentTabId = "decisionTree";
 				}
@@ -410,7 +551,7 @@
 			};
 			
 			//NBC
-			var nativeBayes = function() {
+			var nativeBayesShow = function() {
 				if(currentTabId == null) {
 					currentTabId = "nativeBayes";
 				}
@@ -425,7 +566,7 @@
 			};
 			
 			//kNN
-			var knn = function() {
+			var knnShow = function() {
 				if(currentTabId == null) {
 					currentTabId = "knn";
 				}
@@ -440,7 +581,7 @@
 			};
 			
 			//回归		
-			var regression = function(path) {
+			var regressionShow = function(path) {
 				if(currentTabId == null) {
 					currentTabId = "regression";
 				}
@@ -499,32 +640,6 @@
 						nodes_text.attr("dy",function(d){ return d.y ; });
 					});
 				});					
-			};
-			
-			//电影选择
-			var movieSelect = function() {
-				var url = "applicationServlet?id=" + document.getElementById("movieId").value;
-				
-				console.log(url);
-				
-				var xhr = new XMLHttpRequest();
-				xhr.addEventListener("readystatechange", movieInfo, false); //服务器处理完毕
-				xhr.open("GET", encodeURI(url), true);
-				xhr.send(null);
-			};
-			
-			var movieInfo = function() {
-				if(event.target.readyState == 4) {
-					//设置电影信息
-					var movieInfo = JSON.parse(event.target.responseText);
-					document.getElementById("movie_name").innerHTML = movieInfo.movie_name;
-					document.getElementById("release_date").innerHTML = movieInfo.release_data;
-					document.getElementById("movie_url").innerHTML = decodeURI(movieInfo.movie_url);
-					document.getElementById("movie_url").href = decodeURI(movieInfo.movie_url);
-					document.getElementById("movie_type").innerHTML = movieInfo.movie_type;
-					//显示电影信息
-					document.getElementById("movieInfo_zone").style.display = "block";
-				}
 			};
 			
 			//节点搜索

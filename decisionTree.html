@@ -129,30 +129,38 @@
 			};
 			
 			var actionType;
+			var lock = false;
 			//决策树训练
 			var training = function() {
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
 				if(!isUploaded) {
 					alert("请先上传数据集！");
 					return;
 				}
 				
-				document.getElementById("test").disabled = true;
 				svg.html("");   //清空svg
 				$("#casePredict").html("");
 				document.getElementById("instancePredict").style.display = "none";
 				actionType = "training";
 				actionRequest(actionType);
+				document.getElementById("waitImage").style.display = "block";
 			};
 			
 			//测试
-			var test = function() {
+			var test = function() {			
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+				}
+				
 				if(!isUploaded) {
 					alert("请先上传数据集！");
 					return;
 				}
 				
 				document.getElementById("test_zone").style.display = "none";
-				document.getElementById("training").disabled = true;
 				actionType = "test";
 				actionRequest(actionType);
 			};
@@ -164,11 +172,7 @@
 				xhr.addEventListener("readystatechange", processedCompleted, false); //服务器处理完毕
 				xhr.open("GET", encodeURI(url), true);
 				xhr.send(null);
-				
-				if(type == "training") {
-					//等待响应
-					document.getElementById("waitImage").style.display = "block";
-				}
+				lock = true;  //加锁
 			};
 			
 			//SVG相关参数
@@ -187,6 +191,7 @@
 			//数据集训练完毕，显示结果
 			var processedCompleted = function(event) {
 				if(event.target.readyState == 4) {
+					lock = false;   //释放锁
 					var respText = event.target.responseText;
 					if(respText.startsWith("Error:")) {
 						alert("数据集不符合规范, 后台处理失败!");
