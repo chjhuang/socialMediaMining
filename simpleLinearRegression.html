@@ -34,6 +34,7 @@
 						</div>
 						<div class="button_line">
 							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
+							<input type="button" id="regression" class="button" value="回归" onclick="regression();">
 						</div>
 					</div>
 			</div>
@@ -68,6 +69,7 @@
     <script type="text/javascript">
 		//上传训练集到服务器
 			var uploadFile = function() {
+				clearFormerLineFunction();
 				var files = document.getElementById("file_select").files;
 				if(files.length > 0) {
 					var file = files[0];	
@@ -79,7 +81,7 @@
 					var xhr = new XMLHttpRequest();
 					xhr.upload.addEventListener("progress", uploadProgress, false);  //progress
 					xhr.upload.addEventListener("load", uploadComplete, false);  //上传完成，不管服务器有没有回复
-					xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
+					//xhr.addEventListener("readystatechange", trainCompleted, false); //服务器处理完毕
 					xhr.open("POST", "NSLRServlet", true);
 					xhr.send(formData);				
 				}
@@ -99,11 +101,18 @@
             var uploadComplete = function(event) {
 				document.getElementById("status").innerHTML = "数据集上传完成!";
 				document.getElementById("upload").disabled = false;
+				var rawData = getRawData();
+				drawEcharts(rawData);
 				//document.getElementById("waitImage").style.display = "block";
             };
 			
 			//数据集训练完毕，显示结果
 			var trainCompleted = function(event) {
+				var result = getTrainedData();
+				drawEcharts(result);
+			}
+			
+			var regression = function(){
 				var result = getTrainedData();
 				drawEcharts(result);
 			}
@@ -119,32 +128,46 @@
 				var predict_val=0.0;
 				var unit = "";
 				
-				if(predice_select=="height")
+				if(predict_input=="")
 				{
-					predict_val=parseFloat(a)*parseFloat(predict_input)+parseFloat(b);
-					unit = "kg";
-				}else if(predice_select=="weight")
-				{
-					predict_val=(parseFloat(predict_input)-parseFloat(b))/parseFloat(a);
-					unit = "cm";
+					alert("输入为空");
+				}else if(parseFloat(predict_input).isNaN){
+					alert("请输入合法数值");
 				}
-				
-				$("#predict_val").val(predict_val);
-				$("#unit").html(unit);
+				else{
+					if(predice_select=="height")
+					{
+						predict_val=parseFloat(a)*parseFloat(predict_input)+parseFloat(b);
+						unit = "kg";
+					}else if(predice_select=="weight")
+					{
+						predict_val=(parseFloat(predict_input)-parseFloat(b))/parseFloat(a);
+						unit = "cm";
+					}
+					
+					$("#predict_val").val(predict_val);
+					$("#unit").html(unit);
+				}
             });
 			
-			function getTrainedData()
+			function clearFormerLineFunction()
+			{
+				$("#line").val("");
+				$("#r").val("");
+				$("#predict_input").val("");
+				$("#predict_val").val("");
+			}
+			function getRawData()
 			{
 				var data = "";
                 $.ajax({
                     type : "get",
                     async : false, //同步执行
-                    url : "./uploadFile/trainedLinearRegression.json",//这里放的是最后存储训练所得结果
+                    url : "./uploadFile/linearRegression.json",//这里放的是最后存储训练所得结果
                     data : {},
                     dataType : "json", //返回数据形式为json
                     success : function(result) {
                     if (result) {
-						alert(result);
                         data = result;            
                     }}
 					,error : function(errorMsg) {
@@ -152,10 +175,29 @@
                     }
 					})
                 return data;    
-				}
+			}
+			function getTrainedData()
+			{
+				var data = "";
+                $.ajax({
+                    type : "get",
+                    async : false, //同步执行
+                    url : "./json/trainedLinearRegression.json",//这里放的是最后存储训练所得结果
+                    data : {},
+                    dataType : "json", //返回数据形式为json
+                    success : function(result) {
+                    if (result) {
+                        data = result;            
+                    }}
+					,error : function(errorMsg) {
+                        alert("不好意思，大爷，图表请求数据失败啦!");
+                    }
+					})
+                return data;    
+			}
 				
 			
-		function drawEcharts(result){
+			function drawEcharts(result){
 			// 路径配置
 			console.log(result);
 			require.config({
@@ -212,8 +254,14 @@
 						formatter: '{value}kg'
 						}
 					}
-					],
-                    series : [
+					]
+                };               
+                // 为echarts对象加载数据
+
+				var series;
+				if(result.points)
+				{
+					series = [
                         {
 							name:'散点',
 							type:'scatter',
@@ -263,8 +311,39 @@
 								
 						}
                     ]
-                };               
-                // 为echarts对象加载数据 
+				}else{
+					series = [
+                        {
+							name:'散点',
+							type:'scatter',
+                            data: (function(){
+										var arr=[];
+                                        if (result) {
+                                               for(var i=0;i<result.length;i++){
+                                                  arr.push([result[i][0],result[i][1]]);
+												 }    
+                                        }else{
+											alert("不好意思，大爷，图表请求数据失败啦!");
+											myChart.hideLoading();
+										}
+										return arr;
+                                   })(),
+							markPoint : {
+							data : [
+								{type : 'max', name: '最大值'},
+								{type : 'min', name: '最小值'}
+							]
+							},
+							markLine : {
+							data : [
+								{type : 'average', name: '平均值'}
+								]
+							}
+						}
+                    ]
+				}
+				
+				option.series = series;
                 myChart.setOption(option); 
 				}
 			);

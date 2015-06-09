@@ -15,32 +15,17 @@ import ucas.dataMining.dao.Node;
 import ucas.dataMining.dao.Relation;
 import ucas.dataMining.dao.SimilarUser;
 import ucas.dataMining.dao.User;
-import ucas.dataMining.regression.MultipleLinearRegression;
 import ucas.dataMining.util.FileIOUtil;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-class mycmp implements Comparator<User>  
-{  
-	//实现对userid排序
-  public int compare(User A, User B)   
-  {  
-	  int tmp1 =  Integer.parseInt(A.getId());
-	  int tmp2 = Integer.parseInt(B.getId());
-        if(tmp1<tmp2)
-        	return -1;
-        else if(tmp1>tmp2)
-        	return 1;
-        else
-        	return 0;
-  }  
-} 
+
 public class DataFactory {
 	private static List<User> users = new ArrayList<User>();
 	private static List<Movie> movies = new ArrayList<Movie>();
 	private static List<SimilarUser> susers = new ArrayList<SimilarUser>();
-	private static String dataPath = "./uploadFile/movie_user.json";
+	private static String dataPath = "uploadFile/movie_user.json";
 	private static boolean loadedData = false;
 	private static int FEATURE_COUNT=19;
 
@@ -49,7 +34,15 @@ public class DataFactory {
 	{
 		if(!loadedData)
 		{
-			LoadData(dataPath);
+			File file = new File(dataPath);
+			String content="";
+			try {
+				content = FileIOUtil.readFile(file);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			LoadData(content);
 			loadedData = true;
 		}
 		else{
@@ -58,15 +51,10 @@ public class DataFactory {
 	}
 	
 	// 首先要加载文件中的数据
-	private static void LoadData(String path) {
-		File file = new File(path);
-		String content="";
-		try {
-			content = FileIOUtil.readFile(file);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public static void LoadData(String content) {
+		// 将加载的旧数据置空,是不是也要将相似用户置空
+		DataFactory.users = new ArrayList<User>();
+		DataFactory.movies = new ArrayList<Movie>();
 		// 将内容读取为json格式的对象并解析
 		JSONObject job = JSONObject.parseObject(content);
 		// 获取用户内容
@@ -100,7 +88,7 @@ public class DataFactory {
 		for (int i = 0; i < mids.length; i++) {
 			JSONObject movieJson = movies.getJSONObject(mids[i].toString());
 			Movie movie = new Movie(movieJson.getString("m_id"),
-					movieJson.getString("m_name"),
+					movieJson.getString("m_name").trim(),
 					movieJson.getString("m_time"));
 			JSONObject genre = movieJson.getJSONObject("m_genre");
 			List<Integer> tags = new ArrayList<Integer>();
@@ -116,15 +104,38 @@ public class DataFactory {
 			DataFactory.movies.add(movie);
 
 		}
+		
+		DataFactory.loadedData = true;
 
 	}
 
 	public static List<User> getAllUsers() {
+		DataFactory.Init();
 		return DataFactory.users;
 	}
 
 	public static List<Movie> getAllMovies() {
+		DataFactory.Init();
 		return DataFactory.movies;
+	}
+	
+	public static String getMovieFeatureString(List<Integer> tags)
+	{
+		String[] features = { "Mystery", "Romance", "Sci-Fi", "Fantasy",
+				"unknown", "Horror", "Film-Noir", "Crime", "Drama",
+				"Children\'s", "Animation", "War", "Adventure", "Action",
+				"Comedy", "Documentary", "Musical", "Thriller", "Western" };
+		String featureString = "";
+		for(int i=0;i<FEATURE_COUNT;i++)
+		{
+			if(tags.get(i)==1)
+			{
+				featureString+=features[i]+",";
+			}else {
+				continue;
+			}
+		}
+		return featureString.substring(0, featureString.length()-1);
 	}
 	
 	public static List<SimilarUser>getSimilarUser(){
@@ -299,82 +310,7 @@ public class DataFactory {
 	}
 	
 	
-	/*
-	 *buildSocialJson函数为求构建网咯social的json文件
-	 *users为原始的用户的list，susers为用户余弦关系对list 
-	 *name为输入的电影的名字 
-	 *返回为JSONObject
-	 */
-	public static JSONObject buildSocialJson(
-						List<User> users,List<Movie>movies,List<SimilarUser> susers,String name){
-		JSONObject jsonBuilder = new JSONObject();
-		int countnode = 0;
-		HashMap<String,String> movielist = new HashMap<String,String>();  //存入电影id与电影名
-		for(int j=0;j<movies.size();j++){
-			int len = movies.get(j).name.length();
-			String sub =movies.get(j).name.substring(0,len-1 );
-			movielist.put(sub, movies.get(j).id);
-		}
-
-		Collections.sort(users, new mycmp());
-//		for(int s= 0;s<users.size();s++){
-//			System.out.println(users.get(s).id);
-//		}
-//		JSONArray nodesList = new JSONArray();  //求nodes（对评过分的用户）信息
-//		for (int i = 0; i < users.size(); i++){
-//				if(users.get(i).ratings.get(movielist.get(name))!=null){//判断对相应电影名对应的id的rating是否打分
-//					JSONObject node = new JSONObject();
-//					node.put("id", Integer.parseInt(users.get(i).id));
-//					node.put("age", users.get(i).age);
-//					node.put("gender", users.get(i).gender);
-//					node.put("occupation", users.get(i).occupation);
-//					node.put("zip", users.get(i).zipcode);
-//					node.put("rating", users.get(i).ratings.get(movielist.get(name)));
-//					node.put("label", 0);
-//					nodesList.add(node);
-//				}
-//		
-//		}
-		JSONArray nodesList = new JSONArray();  //求nodes(对某一电影所有用户nodes)信息
-		for (int i = 0; i < users.size(); i++){
-			if (!users.get(i).ratings.keySet().isEmpty()) {
-				ArrayList<String> strarray1 = new ArrayList<String>(users.get(i).ratings.keySet());
-				HashMap<String, Integer> tmpmap = new HashMap<String, Integer>();
-				for (int k = 0; k < strarray1.size(); k++) {
-					tmpmap.put(strarray1.get(k), users.get(i).ratings.get(strarray1.get(k)));
-				}
-//				System.out.println(users.get(i).id);
-
-				JSONObject node = new JSONObject();
-				node.put("id", Integer.parseInt(users.get(i).id));
-				node.put("age", users.get(i).age);
-				node.put("gender", users.get(i).gender);
-				node.put("occupation", users.get(i).occupation);
-				node.put("zip", users.get(i).zipcode);
-				if(tmpmap.get(movielist.get(name))==null)
-					node.put("rating", 0);
-				else 
-					node.put("rating", tmpmap.get(movielist.get(name)));
-				node.put("label", 0);
-				nodesList.add(node);
-				countnode++;
-			}	
-		}	
-			
-		jsonBuilder.put("nodes", nodesList);
-		
-		JSONArray edgesList = new JSONArray();  //添加edges信息，根据susers中产生的信息对
-		for (int i1 = 0; i1 < susers.size(); i1++){
-				JSONObject edge = new JSONObject();
-				edge.put("source",Integer.parseInt(susers.get(i1).id1));
-				edge.put("target",Integer.parseInt(susers.get(i1).id2));
-				edgesList.add(edge);
-		}
-		jsonBuilder.put("edges",edgesList);
-//		System.out.println(countnode);
-		return jsonBuilder;
-		
-	}
+	
 	
 	public static Map<Integer,Double> getMovieAverageRatingAndCount(String movieId)
 	{
@@ -438,34 +374,9 @@ public class DataFactory {
 		return movieFeatures;
 	}
 	public static void main(String[] args) {
-		long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();	
 		
-//		Init();
-//		//doSimilar求用户对，users为@郭郭，原始处理的，20（超过）为相同的评价电影数目，0.9（超过）为余弦值,
-//		//返回值为susers<list>表,u_id1,u_id2,cos值
-//		doSimilar(DataFactory.users, 80,0.9); 
-//		
-//		JSONObject socialnetwork = new JSONObject();
-//		//buildSocialJson为求social_network.json，users，movies，susers为所求list，"Barbarella"为电影名
-//		//返回值为某个特定电影的网络(所有用户的id)json文件.
-//		socialnetwork = buildSocialJson(users,movies,susers,"Barbarella");
-//		try {
-//			FileIOUtil.writeToFile(JSONObject.toJSONString(socialnetwork),"./data/social_network.json");//写出json文件
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-		Map<double[][],double[]> result = getMovieAverageRatingMatrix();
-		double[][] featureMatrix = (double[][]) result.keySet().toArray()[0];
-		double[] ratings = result.get(featureMatrix);
-		MultipleLinearRegression mlr = new MultipleLinearRegression(featureMatrix,ratings);
-		String[] features ={ "Mystery", "Romance", "Sci-Fi", "Fantasy", "unknown", "Horror", "Film-Noir", "Crime", "Drama", "Children\'s", "Animation",
-				"War", "Adventure", "Action", "Comedy", "Documentary", "Musical", "Thriller", "Western","RatingCount"};
-		for(int i=0;i<=FEATURE_COUNT;i++)
-		{
-			System.out.println("特征："+features[i]+",权重："+mlr.beta(i));
-		}
+		DataFactory.Init();
 		
 		long end = System.currentTimeMillis();
 		long time =end-start;

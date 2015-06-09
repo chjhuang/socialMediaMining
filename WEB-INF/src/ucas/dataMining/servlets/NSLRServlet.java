@@ -65,7 +65,7 @@ public class NSLRServlet extends HttpServlet {
             //将文件交给算法，进行训练,返回json文件所在路径
             JSONObject trainedJob = train(savePath);
             FileIOUtil.writeToFile(trainedJob.toJSONString(), request.getServletContext().getRealPath(
-					"/uploadFile/trainedLinearRegression.json"));
+					"/json/trainedLinearRegression.json"));
             
 		} catch (Exception ex) {
 			responseMessage = "Error: " + ex.getMessage();

@@ -49,8 +49,7 @@
 						</div>
 						<div class="button_line">
 							<input type="button" id="upload" class="button" value="上传" onclick="uploadFile();">
-							<button name="train" id="train" class="button" value="trag">Train</button>
-							<button name="reset" id="reset" class="button" value="trag">Reset</button>
+							<button name="train" id="train" class="button" value="trag" disabled="true">训练</button>
 						</div>
 						
 					</div>
@@ -59,7 +58,7 @@
 					<h3 class="zone_title">节点搜索：</h3>
 					<div style="display: inline;">
 						<input type="text" id="searchText" class="text_block">
-						<input type="button" id="search" class="button" value="Search">
+						<input type="button" id="search" class="button" value="查找">
 					</div>
 				</div>
 				<div id="information_zone" class="info_zone">
@@ -114,6 +113,7 @@
             var uploadComplete = function(event) {
 				document.getElementById("status").innerHTML = "数据集上传完成!";
 				document.getElementById("upload").disabled = false;
+				document.getElementById("train").disabled = false;
             };
 			
           //数据集训练完毕，显示结果
@@ -168,6 +168,7 @@
 			$("#searchText").html("");
 			$("#searchResult").html("");
 		}
+		
 		function drawNetWork(path,container){
 			var img_w = 30;
 			var img_h = 30;

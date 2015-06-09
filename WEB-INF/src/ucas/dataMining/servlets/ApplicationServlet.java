@@ -1,12 +1,23 @@
 package ucas.dataMining.servlets;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+
+import ucas.dataMining.application.BuildUserNetwork;
+import ucas.dataMining.application.MovieBayes;
+import ucas.dataMining.application.MovieKnn;
+import ucas.dataMining.dao.Movie;
+import ucas.dataMining.dataAccess.DataFactory;
+import ucas.dataMining.util.FileIOUtil;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -17,20 +28,25 @@ public class ApplicationServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String movieId = request.getParameter("id"); //选择的电影ID
 		
+		String movieId = request.getParameter("id"); //选择的电影ID
+		System.out.println("选择的电影id是:"+movieId);
 		String responseMessage;
+		Movie targetMovie = new Movie();
 		// 处理传入的文件
 		try {
+			List<Movie> movies = DataFactory.getAllMovies();
+			for (Movie movie : movies) {
+				if(movie.getId().equals(movieId))
+				{
+					targetMovie = movie;
+				}
+			}
 			JSONObject movie = new JSONObject();
 
-			movie.put("movie_name",
-					"Romy and Michele's High School Reunion (1997)");
-			movie.put("release_data", "25-Apr-1997");
-			movie.put(
-					"movie_url",
-					"http://us.imdb.com/M/title-exact?Romy%20and%20Michele%27s%20High%20School%20Reunion%20%281997%29");
-			movie.put("movie_type", "Horror");
+			movie.put("movie_name",targetMovie.getName());
+			movie.put("release_date", targetMovie.getShowTime());
+			movie.put("movie_type", DataFactory.getMovieFeatureString(targetMovie.getTags()));
 
 			responseMessage = movie.toJSONString();
 
@@ -47,5 +63,49 @@ public class ApplicationServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// String filename = file.getSubmittedFileName();
+		//计时
+		long start = System.currentTimeMillis();	
+		
+		//获取上传文件
+		Part file = request.getPart("file");
+		InputStream fileStream = file.getInputStream();
+		//将输入流写入内存
+		String fileContent = FileIOUtil.readInputStream(fileStream);
+		//将写入内存中的json格式的内容加载为对象
+		DataFactory.LoadData(fileContent);
+		//利用加载的对象进行算法的实现,将执行结果存入指定的文件夹
+		
+		//1、构建网络
+		BuildUserNetwork.buildAndSave(request.getServletContext().getRealPath(
+				".\\json\\social_network.json"),"1014");
+		
+		long buildNetwork = System.currentTimeMillis();
+		long time1 =buildNetwork-start;
+		System.out.println("网络构建时间："+time1+"ms");
+		//2、Bayes算法
+		MovieBayes mk=new MovieBayes();
+		mk.init(".\\uploadFile\\movie_user.json");
+		//在这输入想要存储的路径
+		String bayesPath = request.getServletContext().getRealPath(
+				".\\json\\bayes.json");
+		mk.getClassfiledResult("1014",bayesPath);
+		
+		long movieBayes = System.currentTimeMillis();
+		long time2 =movieBayes-start;
+		System.out.println("Bayes时间："+time2+"ms");
+		
+		//3、KNN算法
+		MovieKnn mknn=new MovieKnn();
+		mknn.init(".\\json\\movie_user.json");
+		
+		String knnPath = request.getServletContext().getRealPath(
+				".\\json\\knn.json");
+		mknn.getClassfiledResult("1014",knnPath);
+		long end = System.currentTimeMillis();
+		long time3 =end-start;
+		System.out.println("运行时间："+time3+"ms");
 	}
+	
+	
+	
 }

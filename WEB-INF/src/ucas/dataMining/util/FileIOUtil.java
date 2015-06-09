@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 public class FileIOUtil {
@@ -19,6 +20,23 @@ public class FileIOUtil {
 	public static String readFile(File file) throws IOException {
 		String result = "";
 		BufferedReader br = new BufferedReader(new FileReader(file));// 构造一个BufferedReader类来读取文件
+		String s = null;
+		while ((s = br.readLine()) != null) {// 使用readLine方法，一次读一行
+			result = result + "\n" + s;
+		}
+		br.close();
+		return result;
+	}
+	
+	/**
+	 * 读取文件
+	 * @throws IOException 
+	 * 
+	 */
+	public static String readInputStream(InputStream inputStream) throws IOException {
+		String result = "";
+		InputStreamReader reader = new InputStreamReader(inputStream);//构造一个输入流的读取对象
+		BufferedReader br = new BufferedReader(reader);// 构造一个BufferedReader类来读取文件
 		String s = null;
 		while ((s = br.readLine()) != null) {// 使用readLine方法，一次读一行
 			result = result + "\n" + s;

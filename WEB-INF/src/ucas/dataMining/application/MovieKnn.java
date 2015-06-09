@@ -22,7 +22,7 @@ public void init(String filename){
 	user_feature.getFeature();
 }
 
-public void getClassfiledResult(String movieId) throws IOException{
+public void getClassfiledResult(String movieId,String savePath) throws IOException{
 	HashMap<Integer,Integer>testSet=user_feature.getTrain_Test(movieId);
 	double [][]trainData=user_feature.trainData;
 	double [][]testData=user_feature.testData;
@@ -99,7 +99,7 @@ public void getClassfiledResult(String movieId) throws IOException{
 	JSONObject save=new JSONObject();
 	save.put("classifications", jsonList);
 	System.out.println(save.toJSONString());
-	FileIOUtil.writeToFile(save.toJSONString(), "./data/knn.json");
+	FileIOUtil.writeToFile(save.toJSONString(),savePath);
 	
 	
 	
@@ -117,7 +117,7 @@ public static void main(String []args)throws IOException{
 	long start = System.currentTimeMillis();
 	MovieKnn mk=new MovieKnn();
 	mk.init(".\\json\\movie_user.json");
-	mk.getClassfiledResult("1014");
+//	mk.getClassfiledResult("1014");
 	long end = System.currentTimeMillis();
 	long time =end-start;
 	System.out.println("运行时间："+time+"ms");

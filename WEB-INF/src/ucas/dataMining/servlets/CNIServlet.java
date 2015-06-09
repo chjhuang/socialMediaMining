@@ -73,7 +73,7 @@ public class CNIServlet extends HttpServlet {
             //将文件交给算法，进行训练,返回json文件所在路径
             JSONObject trainedJob = train(savePath);
             FileIOUtil.writeToFile(trainedJob.toJSONString(), request.getServletContext().getRealPath(
-            		"/uploadFile/trainedNodes.json"));
+            		"/json/trainedNodes.json"));
            
             
 		} catch (Exception ex) {
