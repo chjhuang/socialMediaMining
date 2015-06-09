@@ -173,7 +173,7 @@
 					return;
 				}
 				
-				svg.html("");   //清空svg
+				//svg.html("");   //清空svg
 				actionType = "buildNetwork";
 				actionRequest(actionType, "");
 				document.getElementById("waitImage").style.display = "block";
@@ -342,6 +342,7 @@
 			
 			//绘制初始网络图
 			var drawSocialNetwork = function() {
+				console.log("进入drawSocialNetwork");
 				//Initialize a default force layout, using the nodes and edges in dataset
 				force.nodes(dataset.nodes)
 					 .links(dataset.edges)
@@ -356,7 +357,7 @@
 			    edges.enter()
 					 .append("line")
 					 .attr("class", "link");
-				
+				console.log("边完成");
 				//update the nodes
 				nodes = nodes.data(dataset.nodes);
 				
@@ -375,6 +376,7 @@
 						drawMsgBubble(d);
 					 })
 					 .call(force.drag);  //允许节点拖放
+				console.log("画点完成");
 			};
 			
 			//绘制节点信息提示框

@@ -53,6 +53,7 @@ public class ApplicationServlet extends HttpServlet {
 		}else if(requestType.equals("movieSelect"))
 		{
 			String movieId = request.getParameter("id"); //选择的电影ID
+			System.out.println("选择的电影id是:"+movieId);
 			Thread bayesThread = new Thread(new MovieBayes(movieId));
 			Thread knnThread = new Thread(new MovieKnn(movieId));
 			Thread regressionThread = new Thread(new FeatureRegression());
@@ -62,7 +63,7 @@ public class ApplicationServlet extends HttpServlet {
 			knnThread.start();
 			regressionThread.start();
 			decisionTreeThread.start();
-			System.out.println("选择的电影id是:"+movieId);
+			
 			Movie targetMovie = new Movie();
 			// 处理传入的文件
 			try {

@@ -92,11 +92,12 @@ public class MovieDecisionTree implements Runnable{
 
 	@Override
 	public void run() {
+		System.out.println("开始进行决策树分类");
 		String savePath = FileIOUtil.rootPath+"\\json\\decisionTree.json";
 		this.trainAndSave(movieId,savePath);
 		
 		Flags.decisionTree = true;
-		
+		System.out.println("决策树分类结束");
 	}
 
 }

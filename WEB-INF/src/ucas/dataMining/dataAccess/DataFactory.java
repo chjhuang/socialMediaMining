@@ -69,6 +69,7 @@ public class DataFactory {
 		// 将加载的旧数据置空,是不是也要将相似用户置空
 		DataFactory.users = new ArrayList<User>();
 		DataFactory.movies = new ArrayList<Movie>();
+		DataFactory.susers = new ArrayList<SimilarUser>();
 		// 将内容读取为json格式的对象并解析
 		JSONObject job = JSONObject.parseObject(content);
 		// 获取用户内容

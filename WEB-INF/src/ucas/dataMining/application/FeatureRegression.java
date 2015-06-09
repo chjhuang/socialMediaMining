@@ -57,6 +57,7 @@ public class FeatureRegression implements Runnable{
 	
 	@Override
 	public void run() {
+		System.out.println("开始进行多元线性回归");
 		String savePath = FileIOUtil.rootPath+"\\json\\mutiLinearRegression.json";
 		try {
 			saveFeatureWeights(savePath);
@@ -66,5 +67,6 @@ public class FeatureRegression implements Runnable{
 		}
 		
 		Flags.regression = true;
+		System.out.println("多元线性回归完毕");
 	}
 }

@@ -29,8 +29,6 @@ public class MovieBayes implements Runnable {
 		user_feature.getFeature();
 	}
 	
-	
-
 	public void getClassfiledResult(String movieId, String savePath)
 			throws IOException {
 		HashMap<Integer, Integer> testSet = user_feature.getTrain_Test(movieId);
@@ -134,14 +132,17 @@ public class MovieBayes implements Runnable {
 
 	@Override
 	public void run() {
+		System.out.println("开始进行bayes分类");
 		String savePath = FileIOUtil.rootPath+"\\json\\bayes.json";
 		try {
+			this.init(savePath);
 			this.getClassfiledResult(movieId, savePath);
 			Flags.nbc = true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("bayes分类结束");
 		
 	}
 }

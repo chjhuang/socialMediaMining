@@ -138,14 +138,18 @@ public class MovieKnn implements Runnable {
 
 	@Override
 	public void run() {
+		System.out.println("开始进行knn分类");
 		String savePath = FileIOUtil.rootPath+"\\json\\knn.json";
 		try {
+			this.init(savePath);
 			this.getClassfiledResult(movieId, savePath);
 			Flags.knn = true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		System.out.println("knn分类结束");
 
 	}
 }
