@@ -13,6 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import ucas.dataMining.application.BuildUserNetwork;
+import ucas.dataMining.application.FeatureRegression;
+import ucas.dataMining.application.Flags;
+import ucas.dataMining.application.MovieBayes;
+import ucas.dataMining.application.MovieDecisionTree;
+import ucas.dataMining.application.MovieKnn;
 import ucas.dataMining.dao.Movie;
 import ucas.dataMining.dao.User;
 import ucas.dataMining.dataAccess.DataFactory;
@@ -26,52 +31,118 @@ import com.alibaba.fastjson.JSONObject;
 public class ApplicationServlet extends HttpServlet {
 	private static final long serialVersionUID = 7873646937656665027L;
 	
+	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		String movieId = request.getParameter("id"); //选择的电影ID
-		System.out.println("选择的电影id是:"+movieId);
-		String responseMessage;
-		Movie targetMovie = new Movie();
-		// 处理传入的文件
-		try {
-			List<Movie> movies = DataFactory.getAllMovies();
-			List<User> users = DataFactory.getAllUsers();
-			for (Movie movie : movies) {
-				if(movie.getId().equals(movieId))
-				{
-					targetMovie = movie;
-				}
-			}
-			JSONObject jsonBuilder = new JSONObject(); 
-			JSONObject movie = new JSONObject();
-			
-			JSONArray ratingUserArray = new JSONArray();
-			movie.put("movie_id", targetMovie.getId());
-			movie.put("movie_name",targetMovie.getName());
-			movie.put("release_date", targetMovie.getShowTime());
-			movie.put("movie_type", DataFactory.getMovieFeatureString(targetMovie.getTags()));
-			
-			for(User user:users)
+		String responseMessage = "";
+		String requestType =  request.getParameter("type");
+		
+		if(requestType.equals("buildNetwork"))
+		{
+			while(!Flags.networkBuilt)
 			{
-				if(user.getRatings().containsKey(movieId))
-				{
-					Integer rating = user.getRatings().get(movieId);
-					JSONObject ratingUser = new JSONObject();
-					ratingUser.put("user_id", user.getId());
-					ratingUser.put("rating", rating);
-					ratingUserArray.add(ratingUser);
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
-			
-			jsonBuilder.put("movie", movie);
-			jsonBuilder.put("ratingUsers", ratingUserArray);
-			
-			responseMessage = jsonBuilder.toJSONString();
-			System.out.println(responseMessage);
+		}else if(requestType.equals("movieSelect"))
+		{
+			String movieId = request.getParameter("id"); //选择的电影ID
+			Thread bayesThread = new Thread(new MovieBayes(movieId));
+			Thread knnThread = new Thread(new MovieKnn(movieId));
+			Thread regressionThread = new Thread(new FeatureRegression());
+			Thread decisionTreeThread = new Thread(new MovieDecisionTree(movieId));
+	
+			bayesThread.start();
+			knnThread.start();
+			regressionThread.start();
+			decisionTreeThread.start();
+			System.out.println("选择的电影id是:"+movieId);
+			Movie targetMovie = new Movie();
+			// 处理传入的文件
+			try {
+				List<Movie> movies = DataFactory.getAllMovies();
+				List<User> users = DataFactory.getAllUsers();
+				for (Movie movie : movies) {
+					if(movie.getId().equals(movieId))
+					{
+						targetMovie = movie;
+					}
+				}
+				JSONObject jsonBuilder = new JSONObject(); 
+				JSONObject movie = new JSONObject();
+				
+				JSONArray ratingUserArray = new JSONArray();
+				movie.put("movie_id", targetMovie.getId());
+				movie.put("movie_name",targetMovie.getName());
+				movie.put("release_date", targetMovie.getShowTime());
+				movie.put("movie_type", DataFactory.getMovieFeatureString(targetMovie.getTags()));
+				
+				for(User user:users)
+				{
+					if(user.getRatings().containsKey(movieId))
+					{
+						Integer rating = user.getRatings().get(movieId);
+						JSONObject ratingUser = new JSONObject();
+						ratingUser.put("userId", user.getId());
+						ratingUser.put("rating", rating);
+						ratingUserArray.add(ratingUser);
+					}
+				}
+				
+				jsonBuilder.put("movie", movie);
+				jsonBuilder.put("ratingUsers", DataFactory.getOrderedUserRatings(ratingUserArray));
+				
+				responseMessage = jsonBuilder.toJSONString();
+			} catch (Exception ex) {
+				responseMessage = "Error: " + ex.getMessage();
+			}
 
-		} catch (Exception ex) {
-			responseMessage = "Error: " + ex.getMessage();
+		}else if(requestType.equals("decisionTree"))
+		{
+			while(!Flags.decisionTree)
+			{
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}else if (requestType.equals("NBC")) {
+			while(!Flags.nbc)
+			{
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}else if (requestType.equals("kNN")) {
+			while(!Flags.knn)
+			{
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}else {
+			while(!Flags.regression)
+			{
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
 		System.out.println(responseMessage);
@@ -83,13 +154,14 @@ public class ApplicationServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// String filename = file.getSubmittedFileName();
+		Flags.reset();
 		//计时
 		long start = System.currentTimeMillis();	
 		
+		//设置根目录
+		FileIOUtil.rootPath = request.getServletContext().getRealPath("/");
 		//获取上传文件
 		Part file = request.getPart("file");
-//		String movieID = request.getParameter("movieID");
-//		System.out.println("请求的movieID:"+movieID);
 		
 		InputStream fileStream = file.getInputStream();
 		//将输入流写入内存
@@ -100,35 +172,9 @@ public class ApplicationServlet extends HttpServlet {
 		//利用加载的对象进行算法的实现,将执行结果存入指定的文件夹
 		
 		//1、构建网络
-		BuildUserNetwork.buildAndSave(request.getServletContext().getRealPath(
-				".\\json\\social_network.json"));
-		
-		long buildNetwork = System.currentTimeMillis();
-		long time1 =buildNetwork-start;
-		System.out.println("网络构建时间："+time1+"ms");
-		
-//		//2、Bayes算法
-//		MovieBayes mk=new MovieBayes();
-//		mk.init(".\\uploadFile\\movie_user.json");
-//		//在这输入想要存储的路径
-//		String bayesPath = request.getServletContext().getRealPath(
-//				".\\json\\bayes.json");
-//		mk.getClassfiledResult("1014",bayesPath);
-//		
-//		long movieBayes = System.currentTimeMillis();
-//		long time2 =movieBayes-start;
-//		System.out.println("Bayes时间："+time2+"ms");
-//		
-//		//3、KNN算法
-//		MovieKnn mknn=new MovieKnn();
-//		mknn.init(".\\json\\movie_user.json");
-//		
-//		String knnPath = request.getServletContext().getRealPath(
-//				".\\json\\knn.json");
-//		mknn.getClassfiledResult("1014",knnPath);
-//		long end = System.currentTimeMillis();
-//		long time3 =end-start;
-//		System.out.println("运行时间："+time3+"ms");
+		Thread buildNetwork = new Thread(new BuildUserNetwork());
+		buildNetwork.start();
+				
 	}
 	
 	

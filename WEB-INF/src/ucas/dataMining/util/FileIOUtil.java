@@ -11,6 +11,10 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 public class FileIOUtil {
+	/**
+	 * 存储和读取文件根目录
+	 */
+	public static String rootPath;
 	
 	/**
 	 * 读取文件

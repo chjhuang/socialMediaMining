@@ -20,7 +20,21 @@ import ucas.dataMining.util.FileIOUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-
+class RatingUserJOBComparator implements Comparator<JSONObject>  
+{  
+	//实现对userid排序
+  public int compare(JSONObject A, JSONObject B)   
+  {  
+	  int tmp1 =  Integer.parseInt(A.getString("userId"));
+	  int tmp2 = Integer.parseInt(B.getString("userId"));
+        if(tmp1<tmp2)
+        	return -1;
+        else if(tmp1>tmp2)
+        	return 1;
+        else
+        	return 0;
+  }  
+} 
 public class DataFactory {
 	private static List<User> users = new ArrayList<User>();
 	private static List<Movie> movies = new ArrayList<Movie>();
@@ -142,7 +156,26 @@ public class DataFactory {
 		return susers;
 	}
 	
-	
+	/**
+	 * 给用户的评分进行排序的工具类
+	 * @param userRatings
+	 * @return
+	 */
+	public static JSONArray getOrderedUserRatings(JSONArray userRatings)
+	{
+		List<JSONObject> ratingList = new ArrayList<JSONObject>();
+		JSONArray sortedRatingList = new JSONArray();
+		for(int i=0;i<userRatings.size();i++)
+		{
+			ratingList.add((JSONObject)userRatings.get(i));
+		}
+		Collections.sort(ratingList,new RatingUserJOBComparator());
+		for(int i=0;i<userRatings.size();i++)
+		{
+			sortedRatingList.add(ratingList.get(i));
+		}
+		return sortedRatingList;
+	}
 	public static List<Node> getAllNodes(String jsonPath)
 	{
 		List<Node> nodes = new ArrayList<Node>();
@@ -192,7 +225,12 @@ public class DataFactory {
 		return relations;
 	}
 	
-	
+	/**
+	 * 计算用户之间的相似度，并向静态对象List<SUser>中添加用户相似关系
+	 * @param users
+	 * @param sum
+	 * @param cossum
+	 */
 	public static void doSimilar(List<User> users, int sum,double cossum) {
 		/*
 		 * sum为用户评过分的共同的电影数目，
@@ -253,7 +291,7 @@ public class DataFactory {
 	
 }
 
-	/*
+	/**
 	 * 计算两个字符串()的相似度，简单的余弦计算，未添权重
 	 */
 	public static double getSimilarDegree(String str1, String str2) {
@@ -309,9 +347,11 @@ public class DataFactory {
 		return (vectorProduct / (vector1Modulo * vector2Modulo));
 	}
 	
-	
-	
-	
+	/**
+	 * 计算movieId的电影的平均得分
+	 * @param movieId
+	 * @return 参与评论的用户数和平均得分
+	 */
 	public static Map<Integer,Double> getMovieAverageRatingAndCount(String movieId)
 	{
 		List<User> users = DataFactory.getAllUsers();
@@ -340,6 +380,11 @@ public class DataFactory {
 		
 		return ratingAndCount;
 	}
+	
+	/**
+	 * 获取电影的平均得分矩阵
+	 * @return 电影特征矩阵和电影的平均得分数组
+	 */
 	public static Map<double[][],double[]> getMovieAverageRatingMatrix()
 	{
 		DataFactory.Init();
@@ -365,6 +410,10 @@ public class DataFactory {
 		return result;
 	}
 
+	/**
+	 * 获取电影的特征向量
+	 * @return
+	 */
 	public static String[] getMovieFeatures()
 	{
 		String[] movieFeatures ={ "Mystery", "Romance", "Sci-Fi", "Fantasy", "unknown", "Horror", "Film-Noir", "Crime",
@@ -373,6 +422,8 @@ public class DataFactory {
 		
 		return movieFeatures;
 	}
+	
+	
 	public static void main(String[] args) {
 		long start = System.currentTimeMillis();	
 		

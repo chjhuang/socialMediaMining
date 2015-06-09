@@ -1,11 +1,18 @@
 package ucas.dataMining.application;
 
+import java.io.IOException;
 import java.util.Map;
+
+import org.omg.CORBA.PUBLIC_MEMBER;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import ucas.dataMining.dataAccess.DataFactory;
 import ucas.dataMining.regression.MultipleLinearRegression;
+import ucas.dataMining.util.FileIOUtil;
 
-public class FeatureRegression {
+public class FeatureRegression implements Runnable{
 	public static double[] getFeatureWeight()
 	{
 		Map<double[][],double[]> result = DataFactory.getMovieAverageRatingMatrix();
@@ -21,6 +28,23 @@ public class FeatureRegression {
 		}
 		return featureWeights;
 	}
+	
+	public static void saveFeatureWeights(String savePath) throws IOException
+	{
+		double[] featureWeights = getFeatureWeight();
+		String[] features = DataFactory.getMovieFeatures();
+		
+		JSONArray featuresJsonArray = new JSONArray();
+		for(int i=0;i<features.length;i++)
+		{
+			JSONObject feature = new JSONObject();
+			feature.put("name", features[i]);
+			feature.put("score", featureWeights[i]);
+			featuresJsonArray.add(feature);
+		}
+		
+		FileIOUtil.writeToFile(featuresJsonArray.toJSONString(), savePath);
+	}
 	public static void main(String args[])
 	{
 		double[] weights = getFeatureWeight();
@@ -29,5 +53,18 @@ public class FeatureRegression {
 			System.out.println();
 		}
 		
+	}
+	
+	@Override
+	public void run() {
+		String savePath = FileIOUtil.rootPath+"\\json\\mutiLinearRegression.json";
+		try {
+			saveFeatureWeights(savePath);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Flags.regression = true;
 	}
 }

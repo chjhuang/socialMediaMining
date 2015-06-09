@@ -32,7 +32,7 @@ class mycmp implements Comparator<User>
         	return 0;
   }  
 } 
-public class BuildUserNetwork {
+public class BuildUserNetwork implements Runnable{
 	/*
 	 *buildSocialJson函数为求构建网咯social的json文件
 	 *users为原始的用户的list，susers为用户余弦关系对list 
@@ -102,6 +102,15 @@ public class BuildUserNetwork {
 			e.printStackTrace();
 		}
 		
+	}
+
+
+	@Override
+	public void run() {
+		String savePath = FileIOUtil.rootPath+"\\json\\social_network.json";
+		buildAndSave(savePath);
+		
+		Flags.networkBuilt = true;
 	}
 	
 }
