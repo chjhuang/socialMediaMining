@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import ucas.dataMining.application.MovieKmeans;
 
 
-public class KmeansServelet extends HttpServlet {
+public class KmeansServlet extends HttpServlet {
 	/**
 	 * 
 	 */
@@ -20,7 +20,7 @@ public class KmeansServelet extends HttpServlet {
 	/**
 	 * Constructor of the object.
 	 */
-	public KmeansServelet() {
+	public KmeansServlet() {
 		super();
 		
 	}
@@ -36,7 +36,6 @@ public class KmeansServelet extends HttpServlet {
 	
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
 		doPost(request,response);
 	}
 
@@ -50,12 +49,13 @@ public class KmeansServelet extends HttpServlet {
 			Kmeans_servelet(request,response);
 		else if(method.equals("Xmeans"))
 			Kmeans_servelet(request,response);
+		
 	}
   
-  public void Kmeans_servelet(HttpServletRequest request, HttpServletResponse response)
+	
+	public void Kmeans_servelet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException{
-	  request.setCharacterEncoding("utf-8");
-	  response.setContentType("text/html;charset=utf-8");
+	 
 	  int k;
 	  if(request.getParameter("method").equals("Xmeans")){
 		  k = 4;
@@ -63,8 +63,11 @@ public class KmeansServelet extends HttpServlet {
 		  k = Integer.parseInt(request.getParameter("k"));
 	  }
 
-	  PrintWriter out = response.getWriter();
 	  String result = MovieKmeans.getKmeans(k);
+	  
+	  request.setCharacterEncoding("utf-8");
+	  response.setContentType("text/html;charset=utf-8");
+	  PrintWriter out = response.getWriter();
 	  out.write(result);
 	  out.flush();
 	  out.close();

@@ -8,6 +8,8 @@ import java.util.Random;
 import ucas.dataMining.kmeans.KMeansUserFeature;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
   
 public class MovieKmeans {  
       
@@ -92,7 +94,8 @@ public class MovieKmeans {
             System.out.println(centers.get(i));  
         
         //进行若干次迭代，直到聚类中心稳定
-        while(true){  
+        int count = 100;
+        while(count>0){  
         	
             for(int i=0; i<dataList.size(); i++){ 
                 double maxDistance = 0;  
@@ -144,6 +147,7 @@ public class MovieKmeans {
                 CenterList = initHelpCenterList(CenterList,k);  
                 resultList = initHelpResultList(resultList,k);
             }  
+            count--;
         }//end while
         
         //输出最后聚类结果  
@@ -170,7 +174,7 @@ public class MovieKmeans {
     	 List<ArrayList<Double>> dataList = new ArrayList<ArrayList<Double>>();  
          KMeansUserFeature uf = new KMeansUserFeature();
          //String dir = "/Users/apple/Desktop/njz_python/clusterForMovieUser/src/clusterForMovieUser";
- 		uf.loadData("./data/movie_user.json");
+ 		uf.loadData("uploadFile/movie_user.json");
  		System.out.println(uf.size); 
  		uf.getFeature();
  		System.out.println(uf.size); 
@@ -183,17 +187,44 @@ public class MovieKmeans {
  		}
  		ArrayList<ArrayList<Integer>> kmeans_result = new ArrayList<ArrayList<Integer>>();
         kmeans_result = kmeans_njz(dataList,k);
-        String result = JSON.toJSONString(kmeans_result);
-        return result;
+        
+    	JSONArray jsonList = new JSONArray();
+    	JSONArray json_label_user = new JSONArray();
+    	for(int j=0; j<kmeans_result.size(); j++){
+    		String cluster = "cluster"+String.valueOf(j+1);
+    		JSONObject jblabel = new JSONObject();
+        	jblabel.put("label", cluster);
+        	json_label_user.add(jblabel);
+    		
+        	JSONObject userJsons=new JSONObject();
+        	ArrayList<JSONObject> jlists=new ArrayList<JSONObject>();
+        	ArrayList<Integer> temp = kmeans_result.get(j);
+    		for(int u_id : temp){
+        		JSONObject temp_json = new JSONObject();
+        		temp_json.put("id", u_id);
+        		jlists.add(temp_json);
+    		}
+    		userJsons.put("users",jlists);
+    		json_label_user.add(userJsons);
+    	}
+    	jsonList.add(json_label_user);
+        JSONObject result_json = new JSONObject();
+        result_json.put("cluster", jsonList);
+    	System.out.println(result_json.toJSONString());
+        return result_json.toJSONString();
 		
 	}
     
     public static void main(String[] args) throws IOException{  
         //获取特征进行聚类---943user
+    	System.out.println("test---kmeans");
         List<ArrayList<Double>> dataList = new ArrayList<ArrayList<Double>>();  
         KMeansUserFeature uf = new KMeansUserFeature();
-        String dir = "/Users/apple/Desktop/njz_python/clusterForMovieUser/src/clusterForMovieUser";
-		uf.loadData(dir+"/movie_user.json");
+//        String dir = "/Users/apple/Desktop/njz_python/clusterForMovieUser/src/clusterForMovieUser";
+//        String dir = "C:/Program Files/apache-tomcat-7.0.62/webapps/socialMediaMining/uploadFile";
+//		uf.loadData(dir+"/movie_user.json");
+		uf.loadData("uploadFile/movie_user.json");
+
 		uf.getFeature();
 		for(int i=0;i<uf.size;i++){
 			List<Double> tmpList = new ArrayList<Double>();  
@@ -204,9 +235,30 @@ public class MovieKmeans {
 		}
 		ArrayList<ArrayList<Integer>> kmeans_result = new ArrayList<ArrayList<Integer>>();
         kmeans_result = kmeans_njz(dataList,4);
-        String result = JSON.toJSONString(kmeans_result);
-       // System.out.println(result);
-
+        
+    	JSONArray jsonList = new JSONArray();
+    	JSONArray json_label_user = new JSONArray();
+    	for(int j=0; j<kmeans_result.size(); j++){
+    		String cluster = "cluster"+String.valueOf(j+1);
+    		JSONObject jblabel = new JSONObject();
+        	jblabel.put("label", cluster);
+        	json_label_user.add(jblabel);
+    		
+        	JSONObject userJsons=new JSONObject();
+        	ArrayList<JSONObject> jlists=new ArrayList<JSONObject>();
+        	ArrayList<Integer> temp = kmeans_result.get(j);
+    		for(int u_id : temp){
+        		JSONObject temp_json = new JSONObject();
+        		temp_json.put("id", u_id);
+        		jlists.add(temp_json);
+    		}
+    		userJsons.put("users",jlists);
+    		json_label_user.add(userJsons);
+    	}
+    	jsonList.add(json_label_user);
+        JSONObject result_json = new JSONObject();
+        result_json.put("cluster", jsonList);
+    	System.out.println(result_json.toJSONString());
       
     }//end-main  
 }//end-class
