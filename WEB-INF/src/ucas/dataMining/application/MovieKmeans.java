@@ -188,30 +188,27 @@ public class MovieKmeans {
  		ArrayList<ArrayList<Integer>> kmeans_result = new ArrayList<ArrayList<Integer>>();
         kmeans_result = kmeans_njz(dataList,k);
         
-    	JSONArray jsonList = new JSONArray();
-    	JSONArray json_label_user = new JSONArray();
+        JSONArray clusterJsonArray = new JSONArray();
     	for(int j=0; j<kmeans_result.size(); j++){
     		String cluster = "cluster"+String.valueOf(j+1);
-    		JSONObject jblabel = new JSONObject();
-        	jblabel.put("label", cluster);
-        	json_label_user.add(jblabel);
+    		JSONObject clusterJson = new JSONObject();
+    		JSONArray userJsons=new JSONArray();
     		
-        	JSONObject userJsons=new JSONObject();
-        	ArrayList<JSONObject> jlists=new ArrayList<JSONObject>();
-        	ArrayList<Integer> temp = kmeans_result.get(j);
-    		for(int u_id : temp){
+    		clusterJson.put("label", cluster);
+        	
+        	ArrayList<Integer> userIdList = kmeans_result.get(j);
+    		for(int u_id : userIdList){
         		JSONObject temp_json = new JSONObject();
         		temp_json.put("id", u_id);
-        		jlists.add(temp_json);
+        		userJsons.add(temp_json);
     		}
-    		userJsons.put("users",jlists);
-    		json_label_user.add(userJsons);
+    		
+    		clusterJson.put("users", userJsons);
+    		clusterJsonArray.add(clusterJson);
     	}
-    	jsonList.add(json_label_user);
-        JSONObject result_json = new JSONObject();
-        result_json.put("cluster", jsonList);
-    	System.out.println(result_json.toJSONString());
-        return result_json.toJSONString();
+       
+    	System.out.println(clusterJsonArray.toJSONString());
+        return clusterJsonArray.toJSONString();
 		
 	}
     
@@ -236,29 +233,26 @@ public class MovieKmeans {
 		ArrayList<ArrayList<Integer>> kmeans_result = new ArrayList<ArrayList<Integer>>();
         kmeans_result = kmeans_njz(dataList,4);
         
-    	JSONArray jsonList = new JSONArray();
-    	JSONArray json_label_user = new JSONArray();
+    	JSONArray clusterJsonArray = new JSONArray();
     	for(int j=0; j<kmeans_result.size(); j++){
     		String cluster = "cluster"+String.valueOf(j+1);
-    		JSONObject jblabel = new JSONObject();
-        	jblabel.put("label", cluster);
-        	json_label_user.add(jblabel);
+    		JSONObject clusterJson = new JSONObject();
+    		JSONArray userJsons=new JSONArray();
     		
-        	JSONObject userJsons=new JSONObject();
-        	ArrayList<JSONObject> jlists=new ArrayList<JSONObject>();
-        	ArrayList<Integer> temp = kmeans_result.get(j);
-    		for(int u_id : temp){
+    		clusterJson.put("label", cluster);
+        	
+        	ArrayList<Integer> userIdList = kmeans_result.get(j);
+    		for(int u_id : userIdList){
         		JSONObject temp_json = new JSONObject();
         		temp_json.put("id", u_id);
-        		jlists.add(temp_json);
+        		userJsons.add(temp_json);
     		}
-    		userJsons.put("users",jlists);
-    		json_label_user.add(userJsons);
+    		
+    		clusterJson.put("users", userJsons);
+    		clusterJsonArray.add(clusterJson);
     	}
-    	jsonList.add(json_label_user);
-        JSONObject result_json = new JSONObject();
-        result_json.put("cluster", jsonList);
-    	System.out.println(result_json.toJSONString());
+       
+    	System.out.println(clusterJsonArray.toJSONString());
       
     }//end-main  
 }//end-class
