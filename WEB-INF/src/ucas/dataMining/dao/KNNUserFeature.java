@@ -34,6 +34,7 @@ public void loadData(String filename){
     }
     DataFactory.doSimilar(DataFactory.getAllUsers(), 50,0.9);
 	List<SimilarUser> su=DataFactory.getSimilarUser();
+	System.out.println("相似用户个数为:"+su.size());
 	userGraph.init(su); 
 }
 

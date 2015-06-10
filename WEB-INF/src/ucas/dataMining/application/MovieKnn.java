@@ -72,21 +72,18 @@ public class MovieKnn implements Runnable {
 		}
 		// 将最多的label先保存为JSON对象
 		JSONArray jsonList = new JSONArray();
-		JSONArray jsonBigest = new JSONArray();
 		JSONObject jblabel = new JSONObject();
 		jblabel.put("label", "star " + maxLabelIndex);
-		jsonBigest.add(jblabel);
-		ArrayList<JSONObject> jlists = new ArrayList<JSONObject>();
+		JSONArray jlists = new JSONArray();
 		ArrayList<Integer> lb = result.get(maxLabelIndex);
 		for (int j = 0; j < lb.size(); j++) {
 			JSONObject temp = new JSONObject();
 			temp.put("id", lb.get(j));
 			jlists.add(temp);
 		}
-		JSONObject userJsons = new JSONObject();
-		userJsons.put("users", jlists);
-		jsonBigest.add(userJsons);
-		jsonList.add(jsonBigest);
+		
+		jblabel.put("users", jlists);
+		jsonList.add(jblabel);
 		// 保存其它的label元素
 		ArrayList<Integer> labelsAll = new ArrayList<Integer>(result.keySet());
 		for (int i = 0; i < labelsAll.size(); i++) {
@@ -95,19 +92,15 @@ public class MovieKnn implements Runnable {
 				continue;
 			JSONObject Jlabel = new JSONObject();
 			Jlabel.put("label", "star " + key);
-			JSONArray jlist = new JSONArray();
-			jlist.add(Jlabel);
-			ArrayList<JSONObject> jlist2 = new ArrayList<JSONObject>();
+			JSONArray jlist2 = new JSONArray();
 			ArrayList<Integer> l = result.get(key);
 			for (int j = 0; j < l.size(); j++) {
 				JSONObject temp = new JSONObject();
 				temp.put("id", l.get(j));
 				jlist2.add(temp);
 			}
-			JSONObject userJson = new JSONObject();
-			userJson.put("users", jlist2);
-			jlist.add(userJson);
-			jsonList.add(jlist);
+			Jlabel.put("users", jlist2);
+			jsonList.add(Jlabel);
 		}
 		JSONObject save = new JSONObject();
 		save.put("classifications", jsonList);

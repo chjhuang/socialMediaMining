@@ -24,10 +24,10 @@ class Decisions {
 		decisionBranchs.clear();
 	}
 
-	public AttributeNode makeDecision(String value) throws UnknownDecisionException {
+	public AttributeNode makeDecision(String value){
 		AttributeNode result = decisionBranchs.get(value);
-		if (result == null)
-			throw new UnknownDecisionException();
+		if(result==null)
+			return new AttributeNode("UNKNOWN", NodeType.CLASSIFICATION);
 		return result;
 	}
 }

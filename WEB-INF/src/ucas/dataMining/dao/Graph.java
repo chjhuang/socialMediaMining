@@ -31,6 +31,7 @@ public Graph(){
 //初始化图的结构
 public void init(List<SimilarUser>susers){
 	edgeNumber=susers.size();
+	System.out.println("Graph.init:相似用户个数"+susers.size());
 	for(SimilarUser su:susers){
 		int u=Integer.parseInt(su.getId1());
 		int v=Integer.parseInt(su.getId2());

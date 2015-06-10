@@ -9,6 +9,7 @@ import ucas.dataMining.bayes.naiveBayes;
 import ucas.dataMining.dao.KNNUserFeature;
 import ucas.dataMining.util.FileIOUtil;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 public class MovieBayes implements Runnable {
@@ -75,7 +76,7 @@ public class MovieBayes implements Runnable {
 		ArrayList<JSONObject> jsonList = new ArrayList<JSONObject>();
 		JSONObject jblabel = new JSONObject();
 		jblabel.put("label", "star " + maxLabelIndex);
-		ArrayList<JSONObject> jlists = new ArrayList<JSONObject>();
+		JSONArray jlists = new JSONArray();
 		ArrayList<Integer> lb = result.get(maxLabelIndex);
 		for (int j = 0; j < lb.size(); j++) {
 			JSONObject temp = new JSONObject();

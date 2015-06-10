@@ -51,6 +51,10 @@ public class MovieDecisionTree implements Runnable{
 
 		// 开始生成json
 		JSONObject jsonBuilder = new JSONObject();
+		JSONObject yesObject = new JSONObject();
+		JSONObject noObject = new JSONObject();
+		JSONObject unknownObject = new JSONObject();
+		JSONArray classificationArray = new JSONArray();
 		JSONArray yes = new JSONArray();
 		JSONArray no = new JSONArray();
 		JSONArray unkonwn = new JSONArray();
@@ -73,9 +77,17 @@ public class MovieDecisionTree implements Runnable{
 				} else
 					unkonwn.add(item);
 			}
-			jsonBuilder.put("YES", yes);
-			jsonBuilder.put("NO", no);
-			jsonBuilder.put("UNKNOWN", unkonwn);
+			yesObject.put("lable", "YES");
+			yesObject.put("users", yes);
+			noObject.put("lable", "NO");
+			noObject.put("users", no);
+			unknownObject.put("lable", "UNKNOWN");
+			unknownObject.put("users", unkonwn);
+			
+			classificationArray.add(yesObject);
+			classificationArray.add(noObject);
+			classificationArray.add(unknownObject);
+			jsonBuilder.put("classifications", classificationArray);
 
 		} catch (UnknownDecisionException e) {
 			System.out.println("?");
@@ -85,6 +97,7 @@ public class MovieDecisionTree implements Runnable{
 		try {
 			FileIOUtil.writeToFile(jsonBuilder.toJSONString(),
 					savePath);
+			System.out.println("决策树分类结果："+jsonBuilder.toJSONString());
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
@@ -94,6 +107,7 @@ public class MovieDecisionTree implements Runnable{
 	public void run() {
 		System.out.println("开始进行决策树分类");
 		String savePath = FileIOUtil.rootPath+"\\json\\decisionTree.json";
+		System.out.println("决策树保存路径:"+savePath);
 		this.trainAndSave(movieId,savePath);
 		
 		Flags.decisionTree = true;

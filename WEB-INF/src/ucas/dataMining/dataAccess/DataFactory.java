@@ -120,7 +120,7 @@ public class DataFactory {
 
 		}
 		
-		DataFactory.loadedData = true;
+		loadedData = true;
 
 	}
 
@@ -239,6 +239,7 @@ public class DataFactory {
 		 *两次循环，找i用户与j用户电影评分的id，超过设定的sum值时与cossum值，
 		 *计算两用户的余弦相似度，保存在List<SimilarUser> susers中； 
 		*/
+		
 		int j,count=0,coscount=0;
 		int tmpsum = 0;
 		for (int i = 0; i < users.size(); i++) {
