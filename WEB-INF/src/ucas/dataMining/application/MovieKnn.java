@@ -104,7 +104,6 @@ public class MovieKnn implements Runnable {
 		}
 		JSONObject save = new JSONObject();
 		save.put("classifications", jsonList);
-		System.out.println(save.toJSONString());
 		FileIOUtil.writeToFile(save.toJSONString(), savePath);
 
 	}
@@ -122,7 +121,6 @@ public class MovieKnn implements Runnable {
 		long start = System.currentTimeMillis();
 		MovieKnn mk = new MovieKnn();
 		mk.init(".\\json\\movie_user.json");
-		// mk.getClassfiledResult("1014");
 		long end = System.currentTimeMillis();
 		long time = end - start;
 		System.out.println("运行时间：" + time + "ms");
@@ -141,7 +139,7 @@ public class MovieKnn implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		System.out.println("knn分类结果存储路径"+savePath);
 		System.out.println("knn分类结束");
 
 	}

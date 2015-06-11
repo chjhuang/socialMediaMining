@@ -106,7 +106,6 @@ public class MovieBayes implements Runnable {
 		}
 		JSONObject save = new JSONObject();
 		save.put("classifications", jsonList);
-		System.out.println(save.toJSONString());
 		FileIOUtil.writeToFile(save.toJSONString(), savePath);
 
 	}
@@ -143,6 +142,7 @@ public class MovieBayes implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("bayes分类保存路径:"+savePath);
 		System.out.println("bayes分类结束");
 		
 	}

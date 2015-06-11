@@ -67,6 +67,7 @@ public class FeatureRegression implements Runnable{
 		}
 		
 		Flags.regression = true;
+		System.out.println("多元线性回归结果保存路径"+savePath);
 		System.out.println("多元线性回归完毕");
 	}
 }

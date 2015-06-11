@@ -77,7 +77,7 @@ public class MovieDecisionTree implements Runnable{
 				} else
 					unkonwn.add(item);
 			}
-			yesObject.put("lable", "YES");
+			yesObject.put("label", "YES");
 			yesObject.put("users", yes);
 			noObject.put("lable", "NO");
 			noObject.put("users", no);
@@ -97,7 +97,6 @@ public class MovieDecisionTree implements Runnable{
 		try {
 			FileIOUtil.writeToFile(jsonBuilder.toJSONString(),
 					savePath);
-			System.out.println("决策树分类结果："+jsonBuilder.toJSONString());
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}

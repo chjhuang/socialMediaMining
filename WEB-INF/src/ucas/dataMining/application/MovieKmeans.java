@@ -269,7 +269,6 @@ public class MovieKmeans implements Runnable{
     		clusterJsonArray.add(clusterJson);
     	}
        
-    	System.out.println(clusterJsonArray.toJSONString());
       
     }//end-main  
 
