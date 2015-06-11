@@ -23,7 +23,6 @@ public class FeatureRegression implements Runnable{
 		double[] featureWeights = new double[features.length];
 		for(int i=0;i< features.length;i++)
 		{
-			System.out.println("特征："+features[i]+",权重："+mlr.beta(i));
 			featureWeights[i] = mlr.beta(i);
 		}
 		return featureWeights;

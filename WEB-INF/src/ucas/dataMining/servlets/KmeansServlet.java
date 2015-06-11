@@ -62,8 +62,9 @@ public class KmeansServlet extends HttpServlet {
 	  }else{
 		  k = Integer.parseInt(request.getParameter("k"));
 	  }
-
-	  String result = MovieKmeans.getKmeans(k);
+	  
+	  MovieKmeans movieKmeans = new MovieKmeans(k);
+	  String result = movieKmeans.getKmeans(k);
 	  
 	  request.setCharacterEncoding("utf-8");
 	  response.setContentType("text/html;charset=utf-8");

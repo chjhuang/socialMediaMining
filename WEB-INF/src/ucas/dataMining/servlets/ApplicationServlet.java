@@ -158,7 +158,6 @@ public class ApplicationServlet extends HttpServlet {
 			}
 		}
 
-		System.out.println(responseMessage);
 		response.setContentType("text/plain");
 		response.setCharacterEncoding("UTF-8");
 		response.getWriter().write(responseMessage);

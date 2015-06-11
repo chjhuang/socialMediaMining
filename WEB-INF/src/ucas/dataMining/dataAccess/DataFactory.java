@@ -177,6 +177,7 @@ public class DataFactory {
 		}
 		return sortedRatingList;
 	}
+	
 	public static List<Node> getAllNodes(String jsonPath)
 	{
 		List<Node> nodes = new ArrayList<Node>();
