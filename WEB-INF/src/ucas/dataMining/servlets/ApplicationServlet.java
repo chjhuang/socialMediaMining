@@ -17,6 +17,7 @@ import ucas.dataMining.application.FeatureRegression;
 import ucas.dataMining.application.Flags;
 import ucas.dataMining.application.MovieBayes;
 import ucas.dataMining.application.MovieDecisionTree;
+import ucas.dataMining.application.MovieKmeans;
 import ucas.dataMining.application.MovieKnn;
 import ucas.dataMining.dao.Movie;
 import ucas.dataMining.dao.User;
@@ -50,7 +51,17 @@ public class ApplicationServlet extends HttpServlet {
 					e.printStackTrace();
 				}
 			}
-		}else if(requestType.equals("movieSelect"))
+		}
+		else if(requestType.equals("kMeans"))
+		{
+			String kString =  request.getParameter("k");
+			int k = Integer.parseInt(kString);
+			System.out.println("kmeans参数：k="+k);
+			
+			Thread kmeansThread = new Thread(new MovieKmeans(k));
+			kmeansThread.start();
+		}
+		else if(requestType.equals("movieSelect"))
 		{
 			String movieId = request.getParameter("id"); //选择的电影ID
 			System.out.println("选择的电影id是:"+movieId);

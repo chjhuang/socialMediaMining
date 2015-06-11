@@ -5,13 +5,27 @@ import java.util.ArrayList;
 import java.util.List;  
 import java.util.Random;  
 
+import ucas.dataMining.dao.Movie;
 import ucas.dataMining.kmeans.KMeansUserFeature;
+import ucas.dataMining.util.FileIOUtil;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
   
-public class MovieKmeans {  
+public class MovieKmeans implements Runnable{  
+	
+	public int k;
+	
+	public MovieKmeans(int k)
+	{
+		this.k = k;
+	}
+	
+	public MovieKmeans()
+	{
+		
+	}
       
     public static List<ArrayList<ArrayList<Double>>>   
     initHelpCenterList(List<ArrayList<ArrayList<Double>>> CenterList,int k){  
@@ -169,7 +183,7 @@ public class MovieKmeans {
     }//end kmeans_njz
     
 //    public ArrayList<ArrayList<Integer>> getKmeans(int k){
-    public static String getKmeans(int k){
+    public String getKmeans(int k){
     	
     	 List<ArrayList<Double>> dataList = new ArrayList<ArrayList<Double>>();  
          KMeansUserFeature uf = new KMeansUserFeature();
@@ -207,10 +221,13 @@ public class MovieKmeans {
     		clusterJsonArray.add(clusterJson);
     	}
        
-    	System.out.println(clusterJsonArray.toJSONString());
+    	System.out.println("聚类结果："+clusterJsonArray.toJSONString());
+    	//将结果存入文件
+    	
         return clusterJsonArray.toJSONString();
 		
 	}
+    
     
     public static void main(String[] args) throws IOException{  
         //获取特征进行聚类---943user
@@ -255,4 +272,20 @@ public class MovieKmeans {
     	System.out.println(clusterJsonArray.toJSONString());
       
     }//end-main  
+
+	@Override
+	public void run() {
+		String clusterResultString = this.getKmeans(k);
+		
+		try {
+			FileIOUtil.writeToFile(clusterResultString, 
+					FileIOUtil.rootPath+"\\json\\kmeans.json");
+			Flags.kmeans = true;
+			System.out.println("kmeans聚类结束");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 }//end-class
