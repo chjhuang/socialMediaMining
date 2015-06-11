@@ -122,15 +122,10 @@
             };
 			$("#train").bind("click",function(){
 				$("#main").html("");
-                drawNetWork("./uploadFile/trainedNodes.json","#main");
+                drawNetWork("./json/trainedNodes.json","#main");
 				clearSearch();
 			});
 			
-			$("#reset").bind("click",function(){
-				$("#main").html("");
-                drawNetWork("./uploadFile/nodes.json","#main");
-				clearSearch();
-            });
 			//
 			$("#search").bind("click",function(){
 				var searchNode = $("#searchText").val();

@@ -1,15 +1,14 @@
 package ucas.dataMining.application;
 
-import java.io.IOException;  
-import java.util.ArrayList;  
-import java.util.List;  
-import java.util.Random;  
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
-import ucas.dataMining.dao.Movie;
+import ucas.dataMining.dao.MovieKmeansEvaluate;
 import ucas.dataMining.kmeans.KMeansUserFeature;
 import ucas.dataMining.util.FileIOUtil;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
   
@@ -27,6 +26,9 @@ public class MovieKmeans implements Runnable{
 		
 	}
       
+	public static ArrayList<ArrayList<Integer>> kmeans_result;
+	public static List<ArrayList<Double>> dataList;  
+	
     public static List<ArrayList<ArrayList<Double>>>   
     initHelpCenterList(List<ArrayList<ArrayList<Double>>> CenterList,int k){  
         for(int i=0;i<k;i++){  
@@ -182,12 +184,31 @@ public class MovieKmeans implements Runnable{
         return resultList;
     }//end kmeans_njz
     
-//    public ArrayList<ArrayList<Integer>> getKmeans(int k){
-    public String getKmeans(int k){
-    	
-    	 List<ArrayList<Double>> dataList = new ArrayList<ArrayList<Double>>();  
-         KMeansUserFeature uf = new KMeansUserFeature();
-         //String dir = "/Users/apple/Desktop/njz_python/clusterForMovieUser/src/clusterForMovieUser";
+    /**
+     * 返回聚类结果评价指标
+     * @return
+     */
+    public static MovieKmeansEvaluate getKmeansEvaluate(){
+        float cohesiveness = computeCoh(kmeans_result,dataList);
+        float separateness = computeSep(kmeans_result,dataList);
+        float silhouette = computeSil(kmeans_result,dataList);
+        
+        MovieKmeansEvaluate evaluate = new  MovieKmeansEvaluate(cohesiveness,separateness,silhouette);
+		return evaluate;
+    }
+    
+    /**
+     * 返回聚类结果
+     * @param 聚类数k
+     * @return
+     */
+    public static String getKmeans(int k){
+    	 
+    	kmeans_result = new ArrayList<ArrayList<Integer>>();
+    	dataList = new ArrayList<ArrayList<Double>>();  
+
+    	KMeansUserFeature uf = new KMeansUserFeature();
+        //String dir = "/Users/apple/Desktop/njz_python/clusterForMovieUser/src/clusterForMovieUser";
  		uf.loadData("uploadFile/movie_user.json");
  		System.out.println(uf.size); 
  		uf.getFeature();
@@ -199,7 +220,7 @@ public class MovieKmeans implements Runnable{
  			}
  	         dataList.add((ArrayList<Double>) tmpList);  
  		}
- 		ArrayList<ArrayList<Integer>> kmeans_result = new ArrayList<ArrayList<Integer>>();
+ 		
         kmeans_result = kmeans_njz(dataList,k);
         
         JSONArray clusterJsonArray = new JSONArray();
@@ -250,6 +271,12 @@ public class MovieKmeans implements Runnable{
 		ArrayList<ArrayList<Integer>> kmeans_result = new ArrayList<ArrayList<Integer>>();
         kmeans_result = kmeans_njz(dataList,4);
         
+        float cohesiveness = computeCoh(kmeans_result,dataList);
+        float separateness = computeSep(kmeans_result,dataList);
+        float silhouette = computeSil(kmeans_result,dataList);
+        System.out.println(cohesiveness+" , "+separateness+" , "+silhouette);
+//        System.out.println(kmeans_result);
+        
     	JSONArray clusterJsonArray = new JSONArray();
     	for(int j=0; j<kmeans_result.size(); j++){
     		String cluster = "cluster"+String.valueOf(j+1);
@@ -272,6 +299,141 @@ public class MovieKmeans implements Runnable{
       
     }//end-main  
 
+	private static float computeSil(ArrayList<ArrayList<Integer>> kmeans_rs,List<ArrayList<Double>> dataList) {
+		float sil = 0;
+		int k = kmeans_rs.size();
+		int instance_num = dataList.size();
+		int instance_len = dataList.get(0).size();
+		ArrayList<Double> a = new ArrayList<Double>();
+		ArrayList<Double> b = new ArrayList<Double>();
+		ArrayList<Double> s = new ArrayList<Double>();
+		//初始化
+		for (int i=0; i<instance_num; i++){
+			a.add(0.0);
+			b.add(0.0);
+			s.add(0.0);
+		}
+		
+		//簇内计算
+		for(int i=0; i<k; i++){  
+	        ArrayList<Integer> cluster = kmeans_rs.get(i); 
+	        for(int t=0; t<cluster.size(); t++){
+	        	int instance = cluster.get(t);
+	        	double sum = 0;
+	        	 for(int t1=0; t1<cluster.size(); t1++){
+	        		 int other_instance = cluster.get(t1);
+	        		 if(instance == other_instance) continue;
+	        		 sum +=  Math.pow(Math.abs( cos(dataList.get(instance), dataList.get(other_instance))),2.0);
+	        	 }
+	        	 a.set(instance, sum/(cluster.size()-1));
+	        }
+	    }  
+		
+		//簇间计算
+		for(int i=0; i<k; i++){  
+	        ArrayList<Integer> cur_cluster = kmeans_rs.get(i); 
+	        for(int j=0; j<cur_cluster.size(); j++){
+        		int instance = cur_cluster.get(j);
+        		 for(int i1=0; i1<k; i1++){
+     	        	if(i==i1) continue;
+     	        	ArrayList<Integer> other_cluster = kmeans_rs.get(i1);
+     	        	double sum = 0;
+     	        	for (int j1=0; j1<other_cluster.size();j1++){
+     	        		sum +=  Math.pow(Math.abs( cos(dataList.get(instance), dataList.get(other_cluster.get(j1)))),2.0);
+     	        	}//end-other_cluster
+     	        	double temp_b = sum/other_cluster.size();
+     	        	if(b.get(instance)==0){
+     	        		b.set(instance, temp_b);
+     	        	}else{
+     	        		if(b.get(instance)>temp_b)
+     	        			b.set(instance, temp_b);
+     	        	}
+     	        }
+        	}//end instance
+	       
+	    }//end cur_cluster
+		
+		//计算s
+		for(int i=0; i<instance_num; i++){
+			double max;
+			if(b.get(i)>a.get(i)){
+				max = b.get(i);
+			}else{
+				max = a.get(i);
+			}
+			s.set(i,(b.get(i)-a.get(i))/max);
+		}
+		
+		for(int i=0; i<instance_num; i++){
+			sil += s.get(i);
+		}
+		sil /= instance_num;
+		return sil;
+	}
+
+	private static float computeSep(ArrayList<ArrayList<Integer>> kmeans_rs,List<ArrayList<Double>> dataList) {
+		float sep = 0;
+		int k = kmeans_rs.size();
+		int instance_len = dataList.get(0).size();
+		//所有数据的中心
+		ArrayList<Double> CENTER = new ArrayList<Double>();
+        for(int i=0; i<instance_len; i++){
+        	double sum = 0;  
+        	for(int j=0; j<dataList.size(); j++) 
+        		sum += dataList.get(j).get(i);
+        	CENTER.add(sum/dataList.size());  
+        }
+        
+        //每个簇的中心
+        List<ArrayList<Double>> Centers = new ArrayList<ArrayList<Double>>();  
+        for(int i=0; i<k; i++){  
+	          ArrayList<Integer> cluster = kmeans_rs.get(i); 
+              ArrayList<Double> tmp = new ArrayList<Double>();  
+	          for(int j=0; j<instance_len; j++){  
+	              double sum = 0;  
+	              for(int t=0; t<cluster.size(); t++)  
+	                  sum += dataList.get(cluster.get(t)).get(j);  
+	              tmp.add(sum/cluster.size());  
+	          } 
+	          Centers.add(tmp);  
+	    }  
+	
+        //簇中心与数据中心计算
+		for(int i=0; i<k; i++){
+			ArrayList<Double> center = Centers.get(i);
+	        	sep += Math.pow(Math.abs( cos(center, CENTER)),2.0);
+		}
+		return sep;
+	}
+
+	private static float computeCoh(ArrayList<ArrayList<Integer>> kmeans_rs, List<ArrayList<Double>> dataList) {
+		float coh = 0;
+		int k = kmeans_rs.size();
+		int instance_len = dataList.get(0).size();
+        List<ArrayList<Double>> Centers = new ArrayList<ArrayList<Double>>();  
+		for(int i=0; i<k; i++){  
+	          ArrayList<Integer> cluster = kmeans_rs.get(i); 
+              ArrayList<Double> tmp = new ArrayList<Double>();  
+	          for(int j=0; j<instance_len; j++){  
+	              double sum = 0;  
+	              for(int t=0; t<cluster.size(); t++)  
+	                  sum += dataList.get(cluster.get(t)).get(j);  
+	              tmp.add(sum/cluster.size());  
+	          } 
+	          Centers.add(tmp);  
+	    }  
+	
+		for(int i=0; i<k; i++){  
+	          ArrayList<Integer> cluster = kmeans_rs.get(i);
+	          for(int t=0; t<cluster.size(); t++){
+	        	  coh += Math.pow(Math.abs( cos(dataList.get(cluster.get(t)), Centers.get(i))),2.0);
+	          }
+		}
+		return coh;
+	}
+	
+	
+	
 	@Override
 	public void run() {
 		String clusterResultString = this.getKmeans(k);
@@ -287,4 +449,5 @@ public class MovieKmeans implements Runnable{
 		}
 		
 	}
+
 }//end-class
