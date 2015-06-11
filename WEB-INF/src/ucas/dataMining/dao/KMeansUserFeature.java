@@ -37,8 +37,8 @@ public class KMeansUserFeature {
 			if(result.get(user_occupation)==null)
 				result.put(user_occupation, count++);
 		}
-		System.out.println(result);
-		System.out.println(result.size());
+//		System.out.println(result);
+//		System.out.println(result.size());
 		return result;
 	}
 	//返回电影类别，评分数组的map
