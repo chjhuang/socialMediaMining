@@ -86,6 +86,7 @@
 							<li id="decisionTree" onclick="decisionTree();">Decision Tree</li>
 							<li id="nativeBayes" onclick="nativeBayes();">Native Bayes</li>
 							<li id="knn" onclick="knn();">kNN</li>
+							<li id="kMeans" onclick="kMeans();">kMeans</li>
 							<li id="regression" onclick="regression();">Regression</li>
 						</ul>
 					</div>
@@ -166,6 +167,7 @@
 			var buildNetwork = function() {
 				if(lock) {
 					alert("前一请求未处理完毕，请稍后！");
+					return;
 				}
 				
 				if(!isUploaded) {
@@ -173,16 +175,25 @@
 					return;
 				}
 				
-				//svg.html("");   //清空svg
+				//清空原有网络
+				clearSVG();
+				
 				actionType = "buildNetwork";
 				actionRequest(actionType, "");
 				document.getElementById("waitImage").style.display = "block";
 			};
 			
 			//电影选择
+			var movieSelected = false;
 			var movieSelect = function() {
 				if(lock) {
 					alert("前一请求未处理完毕，请稍后！");
+					return;
+				}
+				
+				if(!isUploaded) {
+					alert("请先上传数据集！");
+					return;
 				}
 				
 				actionType = "movieSelect";
@@ -192,8 +203,14 @@
 			
 			//决策树
 			var decisionTree = function() {
+				if(!movieSelected) {
+					alert("请先选择一部电影ID！");
+					return;
+				}
+				
 				if(lock) {
 					alert("前一请求未处理完毕，请稍后！");
+					return;
 				}
 				
 				actionType = "decisionTree";
@@ -202,8 +219,14 @@
 			
 			//NBC
 			var nativeBayes = function() {
+				if(!movieSelected) {
+					alert("请先选择一部电影ID！");
+					return;
+				}
+				
 				if(lock) {
 					alert("前一请求未处理完毕，请稍后！");
+					return;
 				}
 				
 				actionType = "NBC";
@@ -212,11 +235,33 @@
 			
 			//knn
 			var knn = function() {
+				if(!movieSelected) {
+					alert("请先选择一部电影ID！");
+					return;
+				}
+				
 				if(lock) {
 					alert("前一请求未处理完毕，请稍后！");
+					return;
 				}
 				
 				actionType = "kNN";
+				actionRequest(actionType, "");
+			};
+			
+			//kMeans
+			var kMeans = function() {
+				if(!isUploaded) {
+					alert("请先上传数据集并构建用户网络！");
+					return;
+				}
+				
+				if(lock) {
+					alert("前一请求未处理完毕，请稍后！");
+					return;
+				}
+				
+				actionType = "kMeans";
 				actionRequest(actionType, "");
 			};
 			
@@ -224,6 +269,7 @@
 			var regression = function() {
 				if(lock) {
 					alert("前一请求未处理完毕，请稍后！");
+					return;
 				}
 				
 				actionType = "regression";
@@ -307,14 +353,12 @@
 								return;   //数据加载失败
 							}
 							dataset = data;
-							console.log(data);
 							drawSocialNetwork();  //绘制初始网络图
 						});
 					}
 					else if(actionType == "movieSelect") {
 						//设置电影信息
 						var movieInfo = JSON.parse(event.target.responseText);
-						console.log(movieInfo);
 						document.getElementById("movie_id").innerHTML = movieInfo.movie.movie_id;
 						document.getElementById("movie_name").innerHTML = movieInfo.movie.movie_name;
 						document.getElementById("release_date").innerHTML = movieInfo.movie.release_date;										
@@ -324,6 +368,8 @@
 						
 						//区分显示评分用户和未评分用户
 						showGroundTruth(movieInfo.ratingUsers);
+						
+						movieSelected = true;
 					}
 					else if(actionType == "decisionTree"){
 						decisionTreeShow();
@@ -334,6 +380,9 @@
 					else if(actionType == "kNN") {
 						knnShow();
 					}
+					else if(actionType == "kMeans"){
+						kMeansShow();
+					}
 					else {
 						regressionShow();
 					}
@@ -342,7 +391,6 @@
 			
 			//绘制初始网络图
 			var drawSocialNetwork = function() {
-				console.log("进入drawSocialNetwork");
 				//Initialize a default force layout, using the nodes and edges in dataset
 				force.nodes(dataset.nodes)
 					 .links(dataset.edges)
@@ -357,7 +405,7 @@
 			    edges.enter()
 					 .append("line")
 					 .attr("class", "link");
-				console.log("边完成");
+
 				//update the nodes
 				nodes = nodes.data(dataset.nodes);
 				
@@ -376,7 +424,8 @@
 						drawMsgBubble(d);
 					 })
 					 .call(force.drag);  //允许节点拖放
-				console.log("画点完成");
+				
+				regressionShowed = false;
 			};
 			
 			//绘制节点信息提示框
@@ -396,33 +445,37 @@
 				msgBox.append("image")
 					  .attr("xlink:href", "images/msg-bubble.png")
 					  .attr("x", -10)
-					  .attr("y", -128)
+					  .attr("y", -130)
 					  .attr("width", 170)
-					  .attr("height", 150);
+					  .attr("height", 160);
 							
 				var msg = msgBox.append("text")
 								.attr("class", "msg")
 								.attr("x", 10)
-								.attr("y", -100);
+								.attr("y", -110);
 				msg.append("tspan")  //user ID
 				   .attr("x", 10)
-				   .attr("y", -100)
+				   .attr("y", -105)
 				   .text("ID: " + d.id);
 				msg.append("tspan")   //user age
 				   .attr("x", 10)
-				   .attr("y", -85)
+				   .attr("y", -90)
 				   .text("Age: " + d.age);
 				msg.append("tspan")  //user gender
 				   .attr("x", 10)
-				   .attr("y", -70)
+				   .attr("y", -75)
 				   .text("Gender: " + d.gender);
 				msg.append("tspan")  //user occupation
 				   .attr("x", 10)
-				   .attr("y", -55)
+				   .attr("y", -60)
 				   .text("Occupation: " + d.occupation);
+				msg.append("tspan")  //user rating
+				   .attr("x", 10)
+				   .attr("y", -45)
+				   .text("Rating: " + d.rating);
 				msg.append("tspan")  //user label
 				   .attr("x", 10)
-				   .attr("y", -40)
+				   .attr("y", -30)
 				   .text("Label: " + categoryNames[d.label]);
 			};
 			
@@ -472,6 +525,35 @@
 				})
 				.start();
 				
+				if(regressionShowed) {
+					clearSVG();
+					//update the edges
+					edges = edges.data(dataset.edges);
+				
+					//draw the edges
+					edges.enter()
+						 .append("line")
+						 .attr("class", "link");
+
+					//update the nodes
+					nodes = nodes.data(dataset.nodes);
+				
+					//draw the nodes
+					nodes.enter()
+					    .append("circle")
+					    .attr("r", r)
+					    .attr("id", function(d){
+							return "no" + d.id;
+						})
+						.attr("class", "node")
+						.on("click", function(d) {						
+							drawMsgBubble(d);
+						})
+						.call(force.drag);  //允许节点拖放
+					
+					regressionShowed = false;
+			    }
+				
 				nodes.style("fill", function(d, i) {
 					if(d.rating == 0) {
 						return colors(d.label);
@@ -480,14 +562,10 @@
 		    };
 			
 			//区分显示评分用户和未评分用户
-			var showGroundTruth = function(ratingUsers) {
-				var index = 0;
-				dataset.nodes.forEach( function(node) {
-					if(node.id == ratingUsers[index].userId) {
-						node.rating = ratingUsers[index].rating;
-						index++;
-					}
-				});    //更新评分
+			var showGroundTruth = function(ratingUsers) {			
+				ratingUsers.forEach( function(ratingUser) { //更新评分
+					dataset.nodes[ratingUser.userId].rating = ratingUser.rating;
+				});    
 				
 				nodes.style("fill", function(d, i) {
 					if(d.rating == 0) {
@@ -521,7 +599,7 @@
 						}
 						classifications.push(classification);
 					}
-
+					
 					//更新节点类别
 					dataset.nodes.forEach( function(node) {
 						node.label = 0;   //恢复默认label值
@@ -583,8 +661,24 @@
 				showClassifications("json/knn.json");
 			};
 			
-			//回归		
-			var regressionShow = function(path) {
+			//kMeans
+			var kMeansShow = function() {
+				if(currentTabId == null) {
+					currentTabId = "kMeans";
+				}
+				else {
+					document.getElementById(currentTabId).style.backgroundColor = "#B8B8B8";  //复原
+					currentTabId = "kMeans";
+				}
+				
+				document.getElementById(currentTabId).style.backgroundColor = "#ffffff";  //高亮当前标签
+				
+				showClassifications("json/kmeans.json");
+			};
+			
+			//回归
+			var regressionShowed = false;
+			var regressionShow = function() {
 				if(currentTabId == null) {
 					currentTabId = "regression";
 				}
@@ -607,42 +701,44 @@
 						           .gravity(0.02)
 						           .start();
 								
-					svg.html("");
-					var rNodes = svg.selectAll("circle")
-								    .data(root)
-									.enter()
-								    .append("circle")
-								    .attr("r",function(d){
-										return d.score*15;
-									})
-									.style("fill",function(d,i){
-										return colors(i);
-									})
-									.call(force.drag);
-				
-					var text_dx = -20;
-					var text_dy = 20;
-				
-					var nodes_text = svg.selectAll(".nodetext")
-									.data(root)
-									.enter()
-									.append("text")
-									.attr("class","nodetext")
-									.attr("dx",text_dx)
-									.attr("dy",text_dy)
-									.text(function(d){
-										return d.name;
-									});
-				
-									
+					//清空原有svg网络
+					clearSVG();
+					
+					//update nodes data
+					nodes = nodes.data(root);
+					
+					//draw nodes
+					var nodes_circle = nodes.enter()
+											.append("circle")
+											.attr("r", function(d) {
+												return d.score * 15;
+											})
+											.attr("class", "node")
+											.style("fill",function(d,i){
+												return colors(i);
+											})
+											.call(forcer.drag);
+					
+					//draw hint text
+					var nodes_text = nodes.enter()
+										  .append("text")
+										  .attr("class", "nodetext")
+										  .attr("dx", -20)
+										  .attr("dy", 20)
+										  .text(function(d){
+											  return d.name;
+										  });
+					
 					forcer.on("tick", function(){					 
-						rNodes.attr("cx",function(d){ return d.x ;});
-						rNodes.attr("cy",function(d){ return d.y ; });
+						nodes_circle.attr("cx",function(d){ return d.x ;});
+						nodes_circle.attr("cy",function(d){ return d.y ;});
 					 
 						nodes_text.attr("dx",function(d){ return d.x ;});
-						nodes_text.attr("dy",function(d){ return d.y ; });
+						nodes_text.attr("dy",function(d){ return d.y ;});
 					});
-				});					
+				});	
+				
+				regressionShowed = true;
 			};
 			
 			//节点搜索
@@ -687,6 +783,21 @@
 				} 
 				//make sure it's the right value 
 				return (this[middle] != value) ? -1 : middle;
+			};
+			
+			//清空原有svg网络
+			var clearSVG = function() {
+				nodes = nodes.data([]);
+				nodes.exit().remove();
+				edges = edges.data([]);
+				edges.exit().remove();
+				svg.selectAll(".node").remove();
+
+				if(onshow) {
+					//remove old view
+					msgBox.select("image").remove();
+					msgBox.select("text").remove();
+				}
 			};
 		</script>
 	</body>

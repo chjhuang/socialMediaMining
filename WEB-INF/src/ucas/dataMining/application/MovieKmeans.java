@@ -105,9 +105,9 @@ public class MovieKmeans implements Runnable{
         }
         
         //输出k个初始中心  
-        System.out.println("original centers:");  
-        for(int i=0; i<k; i++)  
-            System.out.println(centers.get(i));  
+        //System.out.println("original centers:");  
+        //for(int i=0; i<k; i++)  
+            //System.out.println(centers.get(i));  
         
         //进行若干次迭代，直到聚类中心稳定
         int count = 100;
@@ -141,16 +141,16 @@ public class MovieKmeans implements Runnable{
                 } 
                 newCenters.add(tmp);  
             }  
-            System.out.println("\nnew clusters' centers:\n");  
-            for(int i=0;i<k;i++)  
-                System.out.println(newCenters.get(i));  
+            //System.out.println("\nnew clusters' centers:\n");  
+            //for(int i=0;i<k;i++)  
+                //System.out.println(newCenters.get(i));  
             
             //当新旧中心之间距离---小于阈值时，聚类算法结束  
             double distance = 0;  
             for(int i=0;i<k;i++)
                 distance += cos(centers.get(i),newCenters.get(i));
                 
-            System.out.println("\ndistance: "+distance+"\n\n");
+            //System.out.println("\ndistance: "+distance+"\n\n");
             
             if(distance==k)//小于阈值时，结束循环  
                 break;  
@@ -212,7 +212,7 @@ public class MovieKmeans implements Runnable{
  		uf.loadData("uploadFile/movie_user.json");
  		System.out.println(uf.size); 
  		uf.getFeature();
- 		System.out.println(uf.size); 
+ 		//System.out.println(uf.size); 
  		for(int i=0;i<uf.size;i++){
  			List<Double> tmpList = new ArrayList<Double>();  
  			for(int j=0;j<uf.n;j++){
@@ -242,17 +242,19 @@ public class MovieKmeans implements Runnable{
     		clusterJsonArray.add(clusterJson);
     	}
        
-    	System.out.println("聚类结果："+clusterJsonArray.toJSONString());
+    	//System.out.println("聚类结果："+clusterJsonArray.toJSONString());
     	//将结果存入文件
+    	JSONObject save = new JSONObject();
+		save.put("classifications", clusterJsonArray);
     	
-        return clusterJsonArray.toJSONString();
+        return save.toJSONString();
 		
 	}
     
     
     public static void main(String[] args) throws IOException{  
         //获取特征进行聚类---943user
-    	System.out.println("test---kmeans");
+    	//System.out.println("test---kmeans");
         List<ArrayList<Double>> dataList = new ArrayList<ArrayList<Double>>();  
         KMeansUserFeature uf = new KMeansUserFeature();
 //        String dir = "/Users/apple/Desktop/njz_python/clusterForMovieUser/src/clusterForMovieUser";
@@ -436,11 +438,12 @@ public class MovieKmeans implements Runnable{
 	
 	@Override
 	public void run() {
+		System.out.println("开始进行kMeans分类");
 		String clusterResultString = this.getKmeans(k);
 		
 		try {
 			FileIOUtil.writeToFile(clusterResultString, 
-					FileIOUtil.rootPath+"\\json\\kmeans.json");
+					FileIOUtil.rootPath+"json\\kmeans.json");
 			Flags.kmeans = true;
 			System.out.println("kmeans聚类结束");
 		} catch (IOException e) {

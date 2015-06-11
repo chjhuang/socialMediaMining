@@ -68,7 +68,7 @@ public class MovieKnn implements Runnable {
 		for (int i = 1; i <= 5; i++) {
 			if (sizeOfLabel[i] > maxLabelValue)
 				maxLabelValue = sizeOfLabel[maxLabelIndex = i];
-			System.out.println(i + " " + sizeOfLabel[i]);
+			//System.out.println(i + " " + sizeOfLabel[i]);
 		}
 		// 将最多的label先保存为JSON对象
 		JSONArray jsonList = new JSONArray();
@@ -130,7 +130,7 @@ public class MovieKnn implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("开始进行knn分类");
-		String savePath = FileIOUtil.rootPath+"\\json\\knn.json";
+		String savePath = FileIOUtil.rootPath+"json\\knn.json";
 		try {
 			this.init(savePath);
 			this.getClassfiledResult(movieId, savePath);
@@ -139,7 +139,7 @@ public class MovieKnn implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("knn分类结果存储路径"+savePath);
+		//System.out.println("knn分类结果存储路径"+savePath);
 		System.out.println("knn分类结束");
 
 	}

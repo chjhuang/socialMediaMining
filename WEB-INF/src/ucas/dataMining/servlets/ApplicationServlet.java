@@ -38,7 +38,7 @@ public class ApplicationServlet extends HttpServlet {
 		
 		String responseMessage = "";
 		String requestType =  request.getParameter("type");
-		System.out.println("请求类型是:"+requestType);
+		System.out.println("请求: "+requestType);
 		
 		if(requestType.equals("buildNetwork"))
 		{
@@ -54,25 +54,32 @@ public class ApplicationServlet extends HttpServlet {
 		}
 		else if(requestType.equals("kMeans"))
 		{
+			/*
 			String kString =  request.getParameter("k");
 			int k = Integer.parseInt(kString);
 			System.out.println("kmeans参数：k="+k);
-			
-			Thread kmeansThread = new Thread(new MovieKmeans(k));
-			kmeansThread.start();
+			*/
+			while(!Flags.kmeans)
+			{
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		else if(requestType.equals("movieSelect"))
 		{
 			String movieId = request.getParameter("id"); //选择的电影ID
-			System.out.println("选择的电影id是:"+movieId);
+			System.out.println("选择的电影id是:" + movieId);
 			Thread bayesThread = new Thread(new MovieBayes(movieId));
 			Thread knnThread = new Thread(new MovieKnn(movieId));
-			Thread regressionThread = new Thread(new FeatureRegression());
+			
 			Thread decisionTreeThread = new Thread(new MovieDecisionTree(movieId));
 	
 			bayesThread.start();
 			knnThread.start();
-			regressionThread.start();
 			decisionTreeThread.start();
 			
 			Movie targetMovie = new Movie();
@@ -101,7 +108,7 @@ public class ApplicationServlet extends HttpServlet {
 					{
 						Integer rating = user.getRatings().get(movieId);
 						JSONObject ratingUser = new JSONObject();
-						ratingUser.put("userId", user.getId());
+						ratingUser.put("userId", Integer.parseInt(user.getId()));
 						ratingUser.put("rating", rating);
 						ratingUserArray.add(ratingUser);
 					}
@@ -167,13 +174,13 @@ public class ApplicationServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// String filename = file.getSubmittedFileName();
 		Flags.reset();
-		//计时
-		long start = System.currentTimeMillis();	
 		
 		//设置根目录
 		FileIOUtil.rootPath = request.getServletContext().getRealPath("/");
 		//获取上传文件
 		Part file = request.getPart("file");
+		
+		System.out.println("电影用户数据集上传完成！");
 		
 		InputStream fileStream = file.getInputStream();
 		//将输入流写入内存
@@ -183,10 +190,18 @@ public class ApplicationServlet extends HttpServlet {
 		DataFactory.LoadData(fileContent);
 		//利用加载的对象进行算法的实现,将执行结果存入指定的文件夹
 		
-		//1、构建网络
+		//构建网络
 		Thread buildNetwork = new Thread(new BuildUserNetwork());
 		buildNetwork.start();
-		System.out.println("");
+		
+		//电影回归预测
+		Thread regressionThread = new Thread(new FeatureRegression());
+		regressionThread.start();
+
+		//用户聚类
+		Thread kmeansThread = new Thread(new MovieKmeans(3));
+		kmeansThread.start();
+		
 		response.setContentType("text/plain");
 		response.setCharacterEncoding("UTF-8");
 		response.getWriter().write("");		

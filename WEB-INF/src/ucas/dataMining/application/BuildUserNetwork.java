@@ -108,7 +108,7 @@ public class BuildUserNetwork implements Runnable{
 	@Override
 	public void run() {
 		System.out.println("开始构建网络");
-		String savePath = FileIOUtil.rootPath+"\\json\\social_network.json";
+		String savePath = FileIOUtil.rootPath+"json\\social_network.json";
 		buildAndSave(savePath);
 		System.out.println("用户网络构建完成");
 		Flags.networkBuilt = true;

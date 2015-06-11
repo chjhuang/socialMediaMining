@@ -64,7 +64,7 @@ public class MultipleLinearRegression {
         String result = String.format("%.2f + %.2f beta1 + %.2f beta2  (R^2 = %.2f)\n",
                       regression.beta(0), regression.beta(1), regression.beta(2), regression.R2());
         
-        System.out.println(result);
+        //System.out.println(result);
     }
 }
 

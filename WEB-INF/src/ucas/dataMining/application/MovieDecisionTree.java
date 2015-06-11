@@ -40,8 +40,8 @@ public class MovieDecisionTree implements Runnable{
 			{
 				//根据评分确定是否推荐
 				String choice = "";
-				if(rating>=3)choice = "YES";
-				else if(rating<3) choice = "NO";
+				if(rating>3) choice = "YES";
+				else if(rating<=3) choice = "NO";
 				dt.addInstance(new String[]{users.get(i).getAge()+"",users.get(i).getGender(),
 						users.get(i).getOccupation(),users.get(i).getZipcode()}, choice);
 			}else{
@@ -79,9 +79,9 @@ public class MovieDecisionTree implements Runnable{
 			}
 			yesObject.put("label", "YES");
 			yesObject.put("users", yes);
-			noObject.put("lable", "NO");
+			noObject.put("label", "NO");
 			noObject.put("users", no);
-			unknownObject.put("lable", "UNKNOWN");
+			unknownObject.put("label", "UNKNOWN");
 			unknownObject.put("users", unkonwn);
 			
 			classificationArray.add(yesObject);
@@ -105,8 +105,8 @@ public class MovieDecisionTree implements Runnable{
 	@Override
 	public void run() {
 		System.out.println("开始进行决策树分类");
-		String savePath = FileIOUtil.rootPath+"\\json\\decisionTree.json";
-		System.out.println("决策树保存路径:"+savePath);
+		String savePath = FileIOUtil.rootPath+"json\\decisionTree.json";
+		//System.out.println("决策树保存路径:"+savePath);
 		this.trainAndSave(movieId,savePath);
 		
 		Flags.decisionTree = true;

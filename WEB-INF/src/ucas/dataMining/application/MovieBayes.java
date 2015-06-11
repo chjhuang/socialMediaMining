@@ -68,7 +68,7 @@ public class MovieBayes implements Runnable {
 		int maxLabelIndex = 0;
 		int maxLabelValue = 0;
 		for (int i = 1; i <= 5; i++) {
-			System.out.println(i + " " + sizeOfLabel[i]);
+			//System.out.println(i + " " + sizeOfLabel[i]);
 			if (sizeOfLabel[i] > maxLabelValue)
 				maxLabelValue = sizeOfLabel[maxLabelIndex = i];
 		}
@@ -133,7 +133,7 @@ public class MovieBayes implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("开始进行bayes分类");
-		String savePath = FileIOUtil.rootPath+"\\json\\bayes.json";
+		String savePath = FileIOUtil.rootPath+"json\\bayes.json";
 		try {
 			this.init(savePath);
 			this.getClassfiledResult(movieId, savePath);
@@ -142,7 +142,7 @@ public class MovieBayes implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("bayes分类保存路径:"+savePath);
+		//System.out.println("bayes分类保存路径:"+savePath);
 		System.out.println("bayes分类结束");
 		
 	}
