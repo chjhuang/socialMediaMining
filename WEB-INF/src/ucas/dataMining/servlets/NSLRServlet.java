@@ -71,7 +71,6 @@ public class NSLRServlet extends HttpServlet {
 			responseMessage = "Error: " + ex.getMessage();
 		}
 
-		System.out.println(responseMessage);
 		response.setContentType("text/plain");
 		response.setCharacterEncoding("UTF-8");
 		response.getWriter().write(responseMessage);
@@ -121,9 +120,6 @@ public class NSLRServlet extends HttpServlet {
 			trainJob.put("b", slr.getA1());
 			trainJob.put("r", slr.getR());
 			trainJob.put("points", points);
-			
-			String jsonStr = JSONObject.toJSONString(trainJob,true);
-			System.out.println(jsonStr);
 			
 		}catch(Exception ex)
 		{

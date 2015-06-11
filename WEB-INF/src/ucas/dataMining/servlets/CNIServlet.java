@@ -37,10 +37,6 @@ public class CNIServlet extends HttpServlet {
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
-		//获取前台发出的参数值
-		String reStr = request.getParameter("train");
-		System.out.println("前台发出的train参数值是"+reStr);
 		//获取文件
 		Part part = request.getPart("file");
 		InputStream file = part.getInputStream();
