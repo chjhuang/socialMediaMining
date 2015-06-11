@@ -56,6 +56,7 @@ public class ApplicationServlet extends HttpServlet {
 		{
 			String kString =  request.getParameter("k");
 			int k = Integer.parseInt(kString);
+//			int k=4;
 			System.out.println("kmeans参数：k="+k);
 			
 			Thread kmeansThread = new Thread(new MovieKmeans(k));
@@ -138,6 +139,17 @@ public class ApplicationServlet extends HttpServlet {
 			}
 		}else if (requestType.equals("kNN")) {
 			while(!Flags.knn)
+			{
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		else if (requestType.equals("kMeans")) {
+			while(!Flags.kmeans)
 			{
 				try {
 					Thread.sleep(100);

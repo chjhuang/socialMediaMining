@@ -105,9 +105,9 @@ public class MovieKmeans implements Runnable{
         }
         
         //输出k个初始中心  
-        System.out.println("original centers:");  
-        for(int i=0; i<k; i++)  
-            System.out.println(centers.get(i));  
+//        System.out.println("original centers:");  
+//        for(int i=0; i<k; i++)  
+//            System.out.println(centers.get(i));  
         
         //进行若干次迭代，直到聚类中心稳定
         int count = 100;
@@ -141,16 +141,16 @@ public class MovieKmeans implements Runnable{
                 } 
                 newCenters.add(tmp);  
             }  
-            System.out.println("\nnew clusters' centers:\n");  
-            for(int i=0;i<k;i++)  
-                System.out.println(newCenters.get(i));  
+//            System.out.println("\nnew clusters' centers:\n");  
+//            for(int i=0;i<k;i++)  
+//                System.out.println(newCenters.get(i));  
             
             //当新旧中心之间距离---小于阈值时，聚类算法结束  
             double distance = 0;  
             for(int i=0;i<k;i++)
                 distance += cos(centers.get(i),newCenters.get(i));
                 
-            System.out.println("\ndistance: "+distance+"\n\n");
+//            System.out.println("\ndistance: "+distance+"\n\n");
             
             if(distance==k)//小于阈值时，结束循环  
                 break;  
@@ -210,9 +210,9 @@ public class MovieKmeans implements Runnable{
     	KMeansUserFeature uf = new KMeansUserFeature();
         //String dir = "/Users/apple/Desktop/njz_python/clusterForMovieUser/src/clusterForMovieUser";
  		uf.loadData("uploadFile/movie_user.json");
- 		System.out.println(uf.size); 
+// 		System.out.println(uf.size); 
  		uf.getFeature();
- 		System.out.println(uf.size); 
+// 		System.out.println(uf.size); 
  		for(int i=0;i<uf.size;i++){
  			List<Double> tmpList = new ArrayList<Double>();  
  			for(int j=0;j<uf.n;j++){
@@ -223,6 +223,7 @@ public class MovieKmeans implements Runnable{
  		
         kmeans_result = kmeans_njz(dataList,k);
         
+        JSONObject resultJsonObject = new JSONObject();
         JSONArray clusterJsonArray = new JSONArray();
     	for(int j=0; j<kmeans_result.size(); j++){
     		String cluster = "cluster"+String.valueOf(j+1);
@@ -239,13 +240,14 @@ public class MovieKmeans implements Runnable{
     		}
     		
     		clusterJson.put("users", userJsons);
+    		
     		clusterJsonArray.add(clusterJson);
     	}
-       
-    	System.out.println("聚类结果："+clusterJsonArray.toJSONString());
+    	resultJsonObject.put("classifications", clusterJsonArray);
+//    	System.out.println("聚类结果："+clusterJsonArray.toJSONString());
     	//将结果存入文件
     	
-        return clusterJsonArray.toJSONString();
+        return resultJsonObject.toJSONString();
 		
 	}
     
@@ -274,7 +276,7 @@ public class MovieKmeans implements Runnable{
         float cohesiveness = computeCoh(kmeans_result,dataList);
         float separateness = computeSep(kmeans_result,dataList);
         float silhouette = computeSil(kmeans_result,dataList);
-        System.out.println(cohesiveness+" , "+separateness+" , "+silhouette);
+//        System.out.println(cohesiveness+" , "+separateness+" , "+silhouette);
 //        System.out.println(kmeans_result);
         
     	JSONArray clusterJsonArray = new JSONArray();
@@ -436,6 +438,7 @@ public class MovieKmeans implements Runnable{
 	
 	@Override
 	public void run() {
+		System.out.println("kmeans聚类开始");
 		String clusterResultString = this.getKmeans(k);
 		
 		try {
