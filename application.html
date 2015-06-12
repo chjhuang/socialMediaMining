@@ -479,8 +479,14 @@
 				   .text("Label: " + categoryNames[d.label]);
 			};
 			
+			var tickCount = 0;
 			//tick过程视图更新
 			var tickViewUpdate = function() {
+				if(tickCount < 5) {
+					tickCount++;
+					return;
+				}
+				tickCount = 0;
 				//更新连接
 				edges.attr("x1", function(d) { return d.source.x; })
 					 .attr("y1", function(d) { return d.source.y; })
