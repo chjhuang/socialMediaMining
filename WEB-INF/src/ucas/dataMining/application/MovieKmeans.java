@@ -439,8 +439,9 @@ public class MovieKmeans implements Runnable{
 	@Override
 	public void run() {
 		System.out.println("开始进行kMeans分类");
-		String clusterResultString = this.getKmeans(k);
+		String clusterResultString = getKmeans(k);
 		
+		System.out.println();
 		try {
 			FileIOUtil.writeToFile(clusterResultString, 
 					FileIOUtil.rootPath+"json\\kmeans.json");

@@ -195,12 +195,6 @@ public class SimpleLinearRegression
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
-			/*
-			 * System.out.println("N:" + n);
-			 * System.out.println("ArrayList listX:"+ listX.get(n));
-			 * System.out.println("ArrayList listY:"+ listY.get(n));
-			 */
 		}
 		++pn;
 		coefsValid = false;
