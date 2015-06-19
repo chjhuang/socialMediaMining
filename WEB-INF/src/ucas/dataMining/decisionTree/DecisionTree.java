@@ -121,7 +121,6 @@ public class DecisionTree {
 		usedAttributes.add(attributeName);
 
 		for (String attributeValue : this.attributePairs.get(attributeName)) {
-			// overwrite the attribute decision for each value considered
 			chosenAttributes.put(attributeName, attributeValue);
 
 			// 为当前节点添加决策分支
@@ -130,10 +129,10 @@ public class DecisionTree {
 							usedAttributes), chosenAttributes, usedAttributes));
 		}
 
-		// remove the attribute decision before we walk back up the tree.
+		//移除分配过分支节点的属性
 		chosenAttributes.remove(attributeName);
 
-		// return the subtree so that it can be inserted into the parent tree.
+		//返回当前分支节点
 		return current;
 	}
 

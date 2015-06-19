@@ -760,7 +760,9 @@
 				document.getElementById("user_zip").innerHTML = dataset.nodes[id].zip;
 				document.getElementById("user_rating").innerHTML = dataset.nodes[id].rating;
 				document.getElementById("user_label").innerHTML = categoryNames[dataset.nodes[id].label];
-				if(dataset.nodes[id].rating > 4 || dataset.nodes[id].label == 0)
+				if(dataset.nodes[id].rating > 3 || categoryNames[dataset.nodes[id].label] == "YES" 
+						|| categoryNames[dataset.nodes[id].label] == "star 5" 
+						|| categoryNames[dataset.nodes[id].label] == "star 4")
 				{
 					document.getElementById("recommendation").innerHTML = "YES";
 				}
