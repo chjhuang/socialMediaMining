@@ -43,14 +43,7 @@ public class CNIServlet extends HttpServlet {
 		String responseMessage = "";
 		
 		// 处理传入的文件
-		// 处理传入的文件
-		try {
-			//获取文件名
-			Collection<String> headers = part.getHeaders("Content-Disposition");
-			String fileName = "";
-			if(headers.size()==1)
-				fileName = getFileName((String)(headers.toArray()[0]));
-			
+		try {			
 			//将上传的文件存储作为备份	
 			String savePath = request.getServletContext().getRealPath(
 					"/uploadFile/nodes.json");

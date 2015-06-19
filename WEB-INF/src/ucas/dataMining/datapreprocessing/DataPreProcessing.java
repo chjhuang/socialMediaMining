@@ -20,7 +20,7 @@ public class DataPreProcessing {
 			Relation edge = edges.get(i);
 			int source = edge.getSource();
 			int target = edge.getTarget();
-			//无向图将两个节点的都赋值,这个可能会出问题
+			
 			(adjacenceMatrix.getArray())[source][target] = 1;
 			(adjacenceMatrix.getArray())[target][source] = 1;
 		}
